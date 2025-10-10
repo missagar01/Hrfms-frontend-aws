@@ -23,28 +23,28 @@ const MyProfile = () => {
       const response = await fetch(
         'https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec?sheet=JOINING&action=fetch'
       );
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch data from JOINING sheet');
       }
-      
+
       const rawData = result.data || result;
-      
+
       if (!Array.isArray(rawData)) {
         throw new Error('Expected array data not received');
       }
 
       const headers = rawData[5];
       const dataRows = rawData.length > 6 ? rawData.slice(6) : [];
-      
+
       const getIndex = (headerName) => {
-        const index = headers.findIndex(h => 
+        const index = headers.findIndex(h =>
           h && h.toString().trim().toLowerCase() === headerName.toLowerCase()
         );
         if (index === -1) {
@@ -57,7 +57,7 @@ const MyProfile = () => {
         timestamp: row[getIndex('Timestamp')] || '',
         joiningNo: row[getIndex('Employee ID')] || '',
         candidateName: row[getIndex('Name As Per Aadhar')] || '',
-         candidatePhoto: row[getIndex("Candidate's Photo")] || '',
+        candidatePhoto: row[getIndex("Candidate's Photo")] || '',
         fatherName: row[getIndex('Father Name')] || '',
         dateOfJoining: row[getIndex('Date Of Joining')] || '',
         joiningPlace: row[getIndex('Joining Place')] || '',
@@ -70,30 +70,30 @@ const MyProfile = () => {
         mobileNo: row[getIndex('Mobile No.')] || '',
         familyMobileNo: row[getIndex('Family Mobile No.')] || '',
         relationWithFamily: row[getIndex('Relationship With Family Person')] || '',
-        email: row[getIndex('Personal Email-Id')] || '', 
+        email: row[getIndex('Personal Email-Id')] || '',
         companyName: row[getIndex('Joining Company Name')] || '',
         aadharNo: row[getIndex('Aadhar Card No')] || '',
       }));
 
-      
+
       // Filter data for the current user
-      const filteredData = processedData.filter(task => 
+      const filteredData = processedData.filter(task =>
         task.candidateName?.trim().toLowerCase() === userName.trim().toLowerCase()
       );
 
-     // Inside fetchJoiningData(), after filtering user data
-if (filteredData.length > 0) {
-  const profile = filteredData[0];
-  setProfileData(profile);
-  setFormData(profile);
+      // Inside fetchJoiningData(), after filtering user data
+      if (filteredData.length > 0) {
+        const profile = filteredData[0];
+        setProfileData(profile);
+        setFormData(profile);
 
-  // ✅ Store employeeId in localStorage
-  localStorage.setItem("employeeId", profile.joiningNo);
-} else {
-  toast.error('No profile data found for current user');
-}
+        // ✅ Store employeeId in localStorage
+        localStorage.setItem("employeeId", profile.joiningNo);
+      } else {
+        toast.error('No profile data found for current user');
+      }
 
-      
+
     } catch (error) {
       console.error('Error fetching joining data:', error);
       toast.error(`Failed to load profile data: ${error.message}`);
@@ -116,107 +116,107 @@ if (filteredData.length > 0) {
 
 
   const handleSave = async () => {
-  try {
-    setLoading(true);
-    
-    // 1. Fetch current data from JOINING sheet
-    const fullDataResponse = await fetch(
-      'https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec?sheet=JOINING&action=fetch'
-    );
-    
-    if (!fullDataResponse.ok) {
-      throw new Error(`HTTP error! status: ${fullDataResponse.status}`);
-    }
+    try {
+      setLoading(true);
 
-    const fullDataResult = await fullDataResponse.json();
-    const allData = fullDataResult.data || fullDataResult;
+      // 1. Fetch current data from JOINING sheet
+      const fullDataResponse = await fetch(
+        'https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec?sheet=JOINING&action=fetch'
+      );
 
-    // 2. Find header row (assuming it's row 6 as in your original code)
-    let headerRowIndex = 5; // 0-based index for row 6
-    const headers = allData[headerRowIndex].map(h => h?.toString().trim());
-
-    // 3. Find Employee ID column index
-    const employeeIdIndex = headers.findIndex(h => h?.toLowerCase() === "employee id");
-    if (employeeIdIndex === -1) {
-      throw new Error("Could not find 'Employee ID' column");
-    }
-
-    // 4. Find the employee row index
-    const rowIndex = allData.findIndex((row, idx) =>
-      idx > headerRowIndex &&
-      row[employeeIdIndex]?.toString().trim() === profileData.joiningNo?.toString().trim()
-    );
-    
-    if (rowIndex === -1) throw new Error(`Employee ${profileData.joiningNo} not found`);
-
-    // 5. Get a copy of the existing row
-    let currentRow = [...allData[rowIndex]];
-
-    // 6. Apply updates to the row data
-    // Map form fields to their respective column indices
-    const headerMap = {
-      'Mobile No.': headers.findIndex(h => h?.toLowerCase() === 'mobile no.'),
-      'Family Mobile No.': headers.findIndex(h => h?.toLowerCase() === 'family mobile no.'),
-      'Personal Email-Id': headers.findIndex(h => h?.toLowerCase() === 'personal email-id'),
-      'Current Address': headers.findIndex(h => h?.toLowerCase() === 'current address')
-      // Add more fields as needed
-    };
-
-    // Only update fields that are editable in the form
-    if (headerMap['Mobile No.'] !== -1) {
-      currentRow[headerMap['Mobile No.']] = formData.mobileNo || '';
-    }
-    if (headerMap['Family Mobile No.'] !== -1) {
-      currentRow[headerMap['Family Mobile No.']] = formData.familyMobileNo || '';
-    }
-    if (headerMap['Personal Email-Id'] !== -1) {
-      currentRow[headerMap['Personal Email-Id']] = formData.email || '';
-    }
-    if (headerMap['Current Address'] !== -1) {
-      currentRow[headerMap['Current Address']] = formData.currentAddress || '';
-    }
-
-    // 7. Prepare payload
-    const payload = {
-      sheetName: "JOINING",
-      action: "update",
-      rowIndex: rowIndex + 1, // Convert to 1-based index
-      rowData: JSON.stringify(currentRow)
-    };
-
-    console.log("Final payload being sent:", payload);
-
-    // 8. Send update request
-    const response = await fetch(
-      "https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams(payload).toString(),
+      if (!fullDataResponse.ok) {
+        throw new Error(`HTTP error! status: ${fullDataResponse.status}`);
       }
-    );
 
-    const result = await response.json();
-    console.log("Update result:", result);
+      const fullDataResult = await fullDataResponse.json();
+      const allData = fullDataResult.data || fullDataResult;
 
-    if (result.success) {
-      // Update local state only after successful API update
-      setProfileData(formData);
-      toast.success('Profile updated successfully!');
-      setIsEditing(false);
-    } else {
-      throw new Error(result.error || "Failed to update data");
+      // 2. Find header row (assuming it's row 6 as in your original code)
+      let headerRowIndex = 5; // 0-based index for row 6
+      const headers = allData[headerRowIndex].map(h => h?.toString().trim());
+
+      // 3. Find Employee ID column index
+      const employeeIdIndex = headers.findIndex(h => h?.toLowerCase() === "employee id");
+      if (employeeIdIndex === -1) {
+        throw new Error("Could not find 'Employee ID' column");
+      }
+
+      // 4. Find the employee row index
+      const rowIndex = allData.findIndex((row, idx) =>
+        idx > headerRowIndex &&
+        row[employeeIdIndex]?.toString().trim() === profileData.joiningNo?.toString().trim()
+      );
+
+      if (rowIndex === -1) throw new Error(`Employee ${profileData.joiningNo} not found`);
+
+      // 5. Get a copy of the existing row
+      let currentRow = [...allData[rowIndex]];
+
+      // 6. Apply updates to the row data
+      // Map form fields to their respective column indices
+      const headerMap = {
+        'Mobile No.': headers.findIndex(h => h?.toLowerCase() === 'mobile no.'),
+        'Family Mobile No.': headers.findIndex(h => h?.toLowerCase() === 'family mobile no.'),
+        'Personal Email-Id': headers.findIndex(h => h?.toLowerCase() === 'personal email-id'),
+        'Current Address': headers.findIndex(h => h?.toLowerCase() === 'current address')
+        // Add more fields as needed
+      };
+
+      // Only update fields that are editable in the form
+      if (headerMap['Mobile No.'] !== -1) {
+        currentRow[headerMap['Mobile No.']] = formData.mobileNo || '';
+      }
+      if (headerMap['Family Mobile No.'] !== -1) {
+        currentRow[headerMap['Family Mobile No.']] = formData.familyMobileNo || '';
+      }
+      if (headerMap['Personal Email-Id'] !== -1) {
+        currentRow[headerMap['Personal Email-Id']] = formData.email || '';
+      }
+      if (headerMap['Current Address'] !== -1) {
+        currentRow[headerMap['Current Address']] = formData.currentAddress || '';
+      }
+
+      // 7. Prepare payload
+      const payload = {
+        sheetName: "JOINING",
+        action: "update",
+        rowIndex: rowIndex + 1, // Convert to 1-based index
+        rowData: JSON.stringify(currentRow)
+      };
+
+      console.log("Final payload being sent:", payload);
+
+      // 8. Send update request
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams(payload).toString(),
+        }
+      );
+
+      const result = await response.json();
+      console.log("Update result:", result);
+
+      if (result.success) {
+        // Update local state only after successful API update
+        setProfileData(formData);
+        toast.success('Profile updated successfully!');
+        setIsEditing(false);
+      } else {
+        throw new Error(result.error || "Failed to update data");
+      }
+
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error(`Failed to update profile: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
-
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    toast.error(`Failed to update profile: ${error.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleCancel = () => {
     setFormData(profileData || {});
@@ -225,15 +225,50 @@ if (filteredData.length > 0) {
 
   if (loading) {
     return <div className="page-content p-6"><div className="flex justify-center flex-col items-center">
-                        <div className="w-6 h-6 border-4 border-indigo-500 border-dashed rounded-full animate-spin mb-2"></div>
-                        <span className="text-gray-600 text-sm">Loading pending calls...</span>
-                      </div></div>;
+      <div className="w-6 h-6 border-4 border-indigo-500 border-dashed rounded-full animate-spin mb-2"></div>
+      <span className="text-gray-600 text-sm">Loading pending calls...</span>
+    </div></div>;
   }
 
   if (!profileData) {
     return <div className="page-content p-6">No profile data available</div>;
   }
 
+  const getDisplayableImageUrl = (url) => {
+    if (!url) return null;
+
+    try {
+      const directMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (directMatch && directMatch[1]) {
+        return `https://drive.google.com/thumbnail?id=${directMatch[1]}&sz=w400`;
+      }
+
+      const ucMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (ucMatch && ucMatch[1]) {
+        return `https://drive.google.com/thumbnail?id=${ucMatch[1]}&sz=w400`;
+      }
+
+      const openMatch = url.match(/open\?id=([a-zA-Z0-9_-]+)/);
+      if (openMatch && openMatch[1]) {
+        return `https://drive.google.com/thumbnail?id=${openMatch[1]}&sz=w400`;
+      }
+
+      if (url.includes("thumbnail?id=")) {
+        return url;
+      }
+
+      const anyIdMatch = url.match(/([a-zA-Z0-9_-]{25,})/);
+      if (anyIdMatch && anyIdMatch[1]) {
+        return `https://drive.google.com/thumbnail?id=${anyIdMatch[1]}&sz=w400`;
+      }
+
+      const cacheBuster = Date.now();
+      return url.includes("?") ? `${url}&cb=${cacheBuster}` : `${url}?cb=${cacheBuster}`;
+    } catch (e) {
+      console.error("Error processing image URL:", url, e);
+      return url;
+    }
+  };
 
   return (
     <div className="space-y-6 page-content p-6">
@@ -273,8 +308,36 @@ if (filteredData.length > 0) {
         {/* Profile Picture & Basic Info */}
         <div className="bg-white rounded-xl shadow-lg border p-6">
           <div className="text-center">
-            <div className="w-32 h-32 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-             <img className='h-10 w-10' src={profileData.candidatePhoto}/>
+            <div className="w-32 h-32 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+              {profileData.candidatePhoto ? (
+                <img
+                  src={getDisplayableImageUrl(profileData.candidatePhoto)}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.log("Image failed to load:", e.target.src);
+                    // First try the original URL directly
+                    if (e.target.src !== profileData.candidatePhoto) {
+                      console.log("Trying original URL:", profileData.candidatePhoto);
+                      e.target.src = profileData.candidatePhoto;
+                    } else {
+                      // If that also fails, show user icon
+                      console.log("Both thumbnail and original URL failed");
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "flex";
+                    }
+                  }}
+                  onLoad={(e) => {
+                    console.log("Image loaded successfully:", e.target.src);
+                  }}
+                />
+              ) : null}
+              <div
+                className={`w-full h-full flex items-center justify-center ${profileData.candidatePhoto ? "hidden" : "flex"
+                  }`}
+              >
+                <User size={48} className="text-indigo-400" />
+              </div>
             </div>
             <h2 className="text-xl font-bold text-gray-800">{profileData.candidateName}</h2>
             <p className="text-gray-600">{profileData.designation}</p>
