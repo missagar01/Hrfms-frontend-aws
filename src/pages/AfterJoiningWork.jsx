@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Search, Clock, CheckCircle, X } from 'lucide-react';
 import useDataStore from '../store/dataStore';
-import toast from 'react-hot-toast';  
+import toast from 'react-hot-toast';
 
 const AfterJoiningWork = () => {
   const [activeTab, setActiveTab] = useState("pending");
@@ -153,7 +153,7 @@ const AfterJoiningWork = () => {
       companyDirectory: false,
       assets: [],
     });
-    
+
     setSelectedItem(item);
     setShowModal(true);
     setLoading(true);
@@ -190,7 +190,7 @@ const AfterJoiningWork = () => {
         (row, idx) =>
           idx > headerRowIndex &&
           row[employeeIdIndex]?.toString().trim() ===
-            item.joiningNo?.toString().trim()
+          item.joiningNo?.toString().trim()
       );
 
       if (rowIndex === -1)
@@ -300,51 +300,41 @@ const AfterJoiningWork = () => {
         (row, idx) =>
           idx > headerRowIndex &&
           row[employeeIdIndex]?.toString().trim() ===
-            selectedItem.joiningNo?.toString().trim()
+          selectedItem.joiningNo?.toString().trim()
       );
       if (rowIndex === -1)
         throw new Error(`Employee ${selectedItem.joiningNo} not found`);
 
       const now = new Date();
-const pad = (n) => String(n).padStart(2, "0");
-const formattedTimestamp = `${pad(now.getMonth() + 1)}/${pad(now.getDate())}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-
-
-      const allFieldsYes =
-        formData.checkSalarySlipResume &&
-        formData.offerLetterReceived &&
-        formData.welcomeMeeting &&
-        formData.biometricAccess &&
-        formData.officialEmailId &&
-        formData.assignAssets &&
-        formData.pfEsic &&
-        formData.companyDirectory;
+      const pad = (n) => String(n).padStart(2, "0");
+      const formattedTimestamp = `${pad(now.getMonth() + 1)}/${pad(now.getDate())}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
       const startColumnIndex = 43;
 
       const updatePromises = [];
 
-      if (allFieldsYes) {
-        updatePromises.push(
-          fetch(
-            "https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-              },
-              body: new URLSearchParams({
-                sheetName: "JOINING",
-                action: "updateCell",
-                rowIndex: (rowIndex + 1).toString(),
-                columnIndex: (startColumnIndex + 1).toString(),
-                value: formattedTimestamp,
-              }).toString(),
-            }
-          )
-        );
-      }
+      // ✅ FIX 1: ALWAYS update the timestamp when form is submitted
+      // This moves the item from pending to history regardless of checkbox states
+      updatePromises.push(
+        fetch(
+          "https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              sheetName: "JOINING",
+              action: "updateCell",
+              rowIndex: (rowIndex + 1).toString(),
+              columnIndex: (startColumnIndex + 1).toString(),
+              value: formattedTimestamp,
+            }).toString(),
+          }
+        )
+      );
 
+      // ✅ FIX 2: Update all checkbox values (they can be any combination of Yes/No)
       const fields = [
         { value: formData.checkSalarySlipResume ? "Yes" : "No", offset: 2 },
         { value: formData.offerLetterReceived ? "Yes" : "No", offset: 3 },
@@ -386,16 +376,12 @@ const formattedTimestamp = `${pad(now.getMonth() + 1)}/${pad(now.getDate())}/${n
         throw new Error("Some cell updates failed");
       }
 
-      if (allFieldsYes) {
-        toast.success("All conditions met! Actual date updated successfully.");
-      } else {
-        toast.success(
-          "Conditions updated successfully. Actual date will be updated when all conditions are met."
-        );
-      }
+      // ✅ FIX 3: Simplified success message
+      const checkedCount = Object.values(formData).filter(value => value === true).length;
+      toast.success(`Checklist updated! ${checkedCount} items completed.`);
 
       setShowModal(false);
-      fetchJoiningData();
+      fetchJoiningData(); // This will refresh and move the item to history tab
     } catch (error) {
       console.error("Update error:", error);
       toast.error(`Update failed: ${error.message}`);
@@ -462,22 +448,20 @@ const formattedTimestamp = `${pad(now.getMonth() + 1)}/${pad(now.getDate())}/${n
         <div className="border-b border-gray-300  ">
           <nav className="flex -mb-px">
             <button
-              className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                activeTab === "pending"
-                  ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+              className={`py-4 px-6 font-medium text-sm border-b-2 ${activeTab === "pending"
+                ? "border-indigo-500 text-indigo-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
               onClick={() => setActiveTab("pending")}
             >
               <Clock size={16} className="inline mr-2" />
               Pending ({filteredPendingData.length})
             </button>
             <button
-              className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                activeTab === "history"
-                  ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+              className={`py-4 px-6 font-medium text-sm border-b-2 ${activeTab === "history"
+                ? "border-indigo-500 text-indigo-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
               onClick={() => setActiveTab("history")}
             >
               <CheckCircle size={16} className="inline mr-2" />
@@ -751,9 +735,8 @@ const formattedTimestamp = `${pad(now.getMonth() + 1)}/${pad(now.getDate())}/${n
                 </button>
                 <button
                   type="submit"
-                  className={`px-4 py-2 text-white bg-indigo-700 rounded-md hover:bg-indigo-800 min-h-[42px] flex items-center justify-center ${
-                    submitting ? "opacity-90 cursor-not-allowed" : ""
-                  }`}
+                  className={`px-4 py-2 text-white bg-indigo-700 rounded-md hover:bg-indigo-800 min-h-[42px] flex items-center justify-center ${submitting ? "opacity-90 cursor-not-allowed" : ""
+                    }`}
                   disabled={submitting}
                 >
                   {submitting ? (

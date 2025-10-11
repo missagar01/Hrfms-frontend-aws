@@ -50,8 +50,8 @@ const Sidebar = ({ onClose }) => {
     { path: '/find-enquiry', icon: Search, label: 'Find Enquiry' },
     { path: '/call-tracker', icon: Phone, label: 'Call Tracker' },
     { path: '/after-joining-work', icon: UserCheck, label: 'After Joining Work' },
-    { path: '/leaving', icon: UserX, label: 'Leaving' },
-    { path: '/after-leaving-work', icon: UserMinus, label: 'After Leaving Work' },
+    { path: '/leaving', icon: UserX, label: 'Resign' },
+    { path: '/after-leaving-work', icon: UserMinus, label: 'After Resign' },
     { path: '/employee', icon: Users, label: 'Employee' },
     { path: '/leave-management', icon: BookPlus, label: 'Leave Management' },
     // {
