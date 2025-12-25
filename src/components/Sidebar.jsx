@@ -25,62 +25,95 @@ import {
   NotebookPen,
   Book,
   BadgeDollarSign,
-  BookPlus
+  BookPlus,
+  UserPlus
 } from 'lucide-react';
-import useAuthStore from '../store/authStore';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ onClose }) => {
-  // const { logout, user } = useAuthStore();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [attendanceOpen, setAttendanceOpen] = useState(false);
 
-  const userString = localStorage.getItem('user');
-  const user = userString ? JSON.parse(userString) : null;
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    logout();
     navigate('/login', { replace: true });
 
   };
 
-  const adminMenuItems = [
+  const adminMenuItemsBase = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/indent', icon: FileText, label: 'Opening' },
-    { path: '/find-enquiry', icon: Search, label: 'Find Enquiry' },
-    { path: '/call-tracker', icon: Phone, label: 'Call Tracker' },
-    { path: '/after-joining-work', icon: UserCheck, label: 'After Joining Work' },
-    { path: '/leaving', icon: UserX, label: 'Resign' },
-    { path: '/after-leaving-work', icon: UserMinus, label: 'After Resign' },
-    { path: '/employee', icon: Users, label: 'Employee' },
-    { path: '/leave-management', icon: BookPlus, label: 'Leave Management' },
-    // {
-    //   type: 'dropdown',
-    //   icon: Book,
-    //   label: 'Attendance',
-    //   isOpen: attendanceOpen,
-    //   toggle: () => setAttendanceOpen(!attendanceOpen),
-    //   items: [
-    //     { path: '/attendance', label: 'Monthly' },
-    //     { path: '/attendancedaily', label: 'Daily' }
-    //   ]
-    // },
-    // // { path: '/report', icon: NotebookPen, label: 'Report' },
-    // { path: '/payroll', icon: BadgeDollarSign, label: 'Payroll' },
-    // { path: '/misreport', icon: AlarmClockCheck, label: 'MIS Report' },
+    { path: '/employee-create', icon: UserPlus, label: 'Employee' },
+    { path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' },
+    { path: '/resume-list', icon: BadgeDollarSign, label: 'MainPower List' },
   ];
+
+  const allowedTicketCodes = ['S09191', 'S03835'];
+  const canSeeTickets = allowedTicketCodes.includes(user?.employee_code || '');
+  const resumeCreatorCodes = ['S09191'];
+  const canCreateResume = resumeCreatorCodes.includes(user?.employee_code || '');
+  const approverEmployeeCodes = [
+    'S00002',
+    'S00016',
+    'S00019',
+    'S00037',
+    'S00045',
+    'S00116',
+    'S00143',
+    'S00151',
+    'S00510',
+    'S00658',
+    'S04057',
+    'S04631',
+    'S05777',
+    'S08132',
+    'S08392',
+    'S08495',
+    'S08547',
+    'S09505',
+  ];
+  const canApproveLeaves = approverEmployeeCodes.includes(user?.employee_code || '');
+  const hrEmployeeCodes = ['S08046', 'S09103'];
+  const canApproveHrLeaves = hrEmployeeCodes.includes(user?.employee_code || '');
+  const adminMenuItems = canApproveHrLeaves
+    ? [...adminMenuItemsBase, { path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }]
+    : adminMenuItemsBase;
 
   const employeeMenuItems = [
     // { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' },
     // { path: '/my-attendance', icon: Clock, label: 'My Attendance' },
-    { path: '/indent', icon: FileText, label: 'Opening' },
+    { path: '/resume-request', icon: BadgeDollarSign, label: 'Resume Request' },
+    { path: '/requests', icon: NotebookPen, label: 'Travel Form' },
+    ...(canCreateResume ? [{ path: '/resume-create', icon: FileText, label: 'Resume' }] : []),
+    ...(canSeeTickets
+      ? [
+          { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
+          { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
+        ]
+      : []),
     { path: '/leave-request', icon: LeaveIcon, label: 'Leave Request' },
+    ...(canApproveLeaves ? [{ path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' }] : []),
+    ...(canApproveHrLeaves ? [{ path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }] : []),
     // { path: '/my-salary', icon: DollarSign, label: 'My Salary' },
     { path: '/company-calendar', icon: Calendar, label: 'Company Calendar' },
   ];
 
-  const menuItems = user?.Admin === 'Yes' ? adminMenuItems : employeeMenuItems;
+  const menuItems = isAdmin
+    ? adminMenuItems
+    : (canSeeTickets
+      ? [
+          { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
+          { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
+            { path: '/resume', icon: BadgeDollarSign, label: 'MainPower Request' },
+            { path: '/resume-list', icon: BadgeDollarSign, label: 'MainPower List' },
+             { path: '/condidate-list', icon: BadgeDollarSign, label: 'Condidate List' },
+              { path: '/condidate-select', icon: BadgeDollarSign, label: 'Selected Condidate' },
+        ]
+      : employeeMenuItems);
 
   const SidebarContent = ({ onClose, isCollapsed = false }) => (
     <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-indigo-900 text-white`}>
@@ -177,8 +210,8 @@ const Sidebar = ({ onClose }) => {
             </div>
             {/* Show user info in mobile view regardless of collapsed state */}
             <div className={`${isCollapsed ? 'hidden' : 'block'} md:block`}>
-              <p className="text-sm font-medium text-white">{user?.Name || user?.Username || 'Guest'}</p>
-              <p className="text-xs text-white">{user?.Admin === 'Yes' ? 'Administrator' : 'Employee'}</p>
+              <p className="text-sm font-medium text-white">{user?.employee_name || user?.Name || user?.Username || 'Guest'}</p>
+              <p className="text-xs text-white">{isAdmin ? 'Administrator' : 'Employee'}</p>
 
             </div>
           </div>

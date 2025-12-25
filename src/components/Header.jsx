@@ -1,9 +1,11 @@
 import React from 'react';
 import { Bell, Search, User } from 'lucide-react';
-import useAuthStore from '../store/authStore';
+import { useAuth } from '../context/AuthContext';
 
 const Header = ({ children }) => {
-  const { user } = useAuthStore();
+  const { user } = useAuth();
+  const displayName = user?.employee_name || user?.name || user?.email || 'Guest';
+  const displayRole = user?.role || 'User';
 
   return (
     <header className="bg-white border-b border-white border-opacity-20 shadow-sm flex-shrink-0">
@@ -34,8 +36,8 @@ const Header = ({ children }) => {
               <User size={20} className="text-white" />
             </div>
             <div className="hidden md:block">
-              <p className="text-sm font-medium text-white">{user?.name || 'Guest'}</p>
-              <p className="text-xs text-white opacity-60">Administrator</p>
+              <p className="text-sm font-medium text-white">{displayName}</p>
+              <p className="text-xs text-white opacity-60">{displayRole}</p>
             </div>
           </div>
         </div>

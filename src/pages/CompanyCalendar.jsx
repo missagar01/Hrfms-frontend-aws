@@ -66,11 +66,9 @@ const CompanyCalendar = () => {
         })
         .filter(event => event.date && event.title); // Filter out invalid entries
 
-      console.log("Processed calendar data:", processedData);
       setCompanyEvents(processedData);
 
     } catch (error) {
-      console.error('Error fetching calendar data:', error);
       toast.error(`Failed to load calendar data: ${error.message}`);
     } finally {
       setLoading(false);

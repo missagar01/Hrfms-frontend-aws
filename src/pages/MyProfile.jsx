@@ -1,101 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Building, Edit3, Save, X } from 'lucide-react';
+import { Building, Edit3, Mail, Phone, Save, User, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getEmployeeById, updateEmployee } from '../api/employeeApi';
+import { useAuth } from '../context/AuthContext';
 
 const MyProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { user, token } = useAuth();
 
-  const fetchJoiningData = async () => {
+  const fetchProfile = async () => {
     try {
-      // Get user data from localStorage
-      const userData = localStorage.getItem('user');
-      if (!userData) {
-        throw new Error('No user data found in localStorage');
+      if (!token || !user?.id) {
+        throw new Error('Please login to view your profile');
       }
 
-      const currentUser = JSON.parse(userData);
-      const userName = currentUser.Name;
-
-      // Fetch data from the sheet API
-      const response = await fetch(
-        'https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec?sheet=JOINING&action=fetch'
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await getEmployeeById(user.id, token);
+      const profile = response?.data;
+      if (!profile) {
+        throw new Error('No profile data found');
       }
 
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch data from JOINING sheet');
-      }
-
-      const rawData = result.data || result;
-
-      if (!Array.isArray(rawData)) {
-        throw new Error('Expected array data not received');
-      }
-
-      const headers = rawData[5];
-      const dataRows = rawData.length > 6 ? rawData.slice(6) : [];
-
-      const getIndex = (headerName) => {
-        const index = headers.findIndex(h =>
-          h && h.toString().trim().toLowerCase() === headerName.toLowerCase()
-        );
-        if (index === -1) {
-          console.warn(`Column "${headerName}" not found in sheet`);
-        }
-        return index;
-      };
-
-      const processedData = dataRows.map(row => ({
-        timestamp: row[getIndex('Timestamp')] || '',
-        joiningNo: row[getIndex('Employee ID')] || '',
-        candidateName: row[getIndex('Name As Per Aadhar')] || '',
-        candidatePhoto: row[getIndex("Candidate's Photo")] || '',
-        fatherName: row[getIndex('Father Name')] || '',
-        dateOfJoining: row[getIndex('Date Of Joining')] || '',
-        joiningPlace: row[getIndex('Joining Place')] || '',
-        designation: row[getIndex('Designation')] || '',
-        salary: row[getIndex('Salary')] || '',
-        currentAddress: row[getIndex('Current Address')] || '',
-        addressAsPerAadhar: row[getIndex('Address As Per Aadhar Card')] || '',
-        bodAsPerAadhar: row[getIndex('Date Of Birth As Per Aadhar Card')] || '',
-        gender: row[getIndex('Gender')] || '',
-        mobileNo: row[getIndex('Mobile No.')] || '',
-        familyMobileNo: row[getIndex('Family Mobile No.')] || '',
-        relationWithFamily: row[getIndex('Relationship With Family Person')] || '',
-        email: row[getIndex('Personal Email-Id')] || '',
-        companyName: row[getIndex('Joining Company Name')] || '',
-        aadharNo: row[getIndex('Aadhar Card No')] || '',
-      }));
-
-
-      // Filter data for the current user
-      const filteredData = processedData.filter(task =>
-        task.candidateName?.trim().toLowerCase() === userName.trim().toLowerCase()
-      );
-
-      // Inside fetchJoiningData(), after filtering user data
-      if (filteredData.length > 0) {
-        const profile = filteredData[0];
-        setProfileData(profile);
-        setFormData(profile);
-
-        // ✅ Store employeeId in localStorage
-        localStorage.setItem("employeeId", profile.joiningNo);
-      } else {
-        toast.error('No profile data found for current user');
-      }
-
-
+      setProfileData(profile);
+      setFormData(profile);
     } catch (error) {
-      console.error('Error fetching joining data:', error);
+      console.error('Error fetching profile data:', error);
       toast.error(`Failed to load profile data: ${error.message}`);
     } finally {
       setLoading(false);
@@ -103,8 +34,8 @@ const MyProfile = () => {
   };
 
   useEffect(() => {
-    fetchJoiningData();
-  }, []);
+    fetchProfile();
+  }, [user?.id, token]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -118,98 +49,27 @@ const MyProfile = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-
-      // 1. Fetch current data from JOINING sheet
-      const fullDataResponse = await fetch(
-        'https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec?sheet=JOINING&action=fetch'
-      );
-
-      if (!fullDataResponse.ok) {
-        throw new Error(`HTTP error! status: ${fullDataResponse.status}`);
+      if (!token || !profileData?.id) {
+        throw new Error('Please login to update your profile');
       }
 
-      const fullDataResult = await fullDataResponse.json();
-      const allData = fullDataResult.data || fullDataResult;
-
-      // 2. Find header row (assuming it's row 6 as in your original code)
-      let headerRowIndex = 5; // 0-based index for row 6
-      const headers = allData[headerRowIndex].map(h => h?.toString().trim());
-
-      // 3. Find Employee ID column index
-      const employeeIdIndex = headers.findIndex(h => h?.toLowerCase() === "employee id");
-      if (employeeIdIndex === -1) {
-        throw new Error("Could not find 'Employee ID' column");
-      }
-
-      // 4. Find the employee row index
-      const rowIndex = allData.findIndex((row, idx) =>
-        idx > headerRowIndex &&
-        row[employeeIdIndex]?.toString().trim() === profileData.joiningNo?.toString().trim()
-      );
-
-      if (rowIndex === -1) throw new Error(`Employee ${profileData.joiningNo} not found`);
-
-      // 5. Get a copy of the existing row
-      let currentRow = [...allData[rowIndex]];
-
-      // 6. Apply updates to the row data
-      // Map form fields to their respective column indices
-      const headerMap = {
-        'Mobile No.': headers.findIndex(h => h?.toLowerCase() === 'mobile no.'),
-        'Family Mobile No.': headers.findIndex(h => h?.toLowerCase() === 'family mobile no.'),
-        'Personal Email-Id': headers.findIndex(h => h?.toLowerCase() === 'personal email-id'),
-        'Current Address': headers.findIndex(h => h?.toLowerCase() === 'current address')
-        // Add more fields as needed
-      };
-
-      // Only update fields that are editable in the form
-      if (headerMap['Mobile No.'] !== -1) {
-        currentRow[headerMap['Mobile No.']] = formData.mobileNo || '';
-      }
-      if (headerMap['Family Mobile No.'] !== -1) {
-        currentRow[headerMap['Family Mobile No.']] = formData.familyMobileNo || '';
-      }
-      if (headerMap['Personal Email-Id'] !== -1) {
-        currentRow[headerMap['Personal Email-Id']] = formData.email || '';
-      }
-      if (headerMap['Current Address'] !== -1) {
-        currentRow[headerMap['Current Address']] = formData.currentAddress || '';
-      }
-
-      // 7. Prepare payload
       const payload = {
-        sheetName: "JOINING",
-        action: "update",
-        rowIndex: rowIndex + 1, // Convert to 1-based index
-        rowData: JSON.stringify(currentRow)
+        ...profileData,
+        email: formData.email || '',
+        mobile_number: formData.mobile_number || '',
+        department: formData.department || '',
+        designation: formData.designation || ''
       };
 
-      console.log("Final payload being sent:", payload);
-
-      // 8. Send update request
-      const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbyWlc2CfrDgr1JGsJHl1N4nRf-GAR-m6yqPPuP8Oggcafv3jo4thFrhfAX2vnfSzLQLlg/exec",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams(payload).toString(),
-        }
-      );
-
-      const result = await response.json();
-      console.log("Update result:", result);
-
-      if (result.success) {
-        // Update local state only after successful API update
-        setProfileData(formData);
-        toast.success('Profile updated successfully!');
-        setIsEditing(false);
-      } else {
-        throw new Error(result.error || "Failed to update data");
+      const response = await updateEmployee(profileData.id, payload, token);
+      if (!response?.success) {
+        throw new Error(response?.message || 'Failed to update profile');
       }
 
+      setProfileData(response?.data || payload);
+      setFormData(response?.data || payload);
+      toast.success('Profile updated successfully!');
+      setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error(`Failed to update profile: ${error.message}`);
@@ -233,42 +93,6 @@ const MyProfile = () => {
   if (!profileData) {
     return <div className="page-content p-6">No profile data available</div>;
   }
-
-  const getDisplayableImageUrl = (url) => {
-    if (!url) return null;
-
-    try {
-      const directMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-      if (directMatch && directMatch[1]) {
-        return `https://drive.google.com/thumbnail?id=${directMatch[1]}&sz=w400`;
-      }
-
-      const ucMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-      if (ucMatch && ucMatch[1]) {
-        return `https://drive.google.com/thumbnail?id=${ucMatch[1]}&sz=w400`;
-      }
-
-      const openMatch = url.match(/open\?id=([a-zA-Z0-9_-]+)/);
-      if (openMatch && openMatch[1]) {
-        return `https://drive.google.com/thumbnail?id=${openMatch[1]}&sz=w400`;
-      }
-
-      if (url.includes("thumbnail?id=")) {
-        return url;
-      }
-
-      const anyIdMatch = url.match(/([a-zA-Z0-9_-]{25,})/);
-      if (anyIdMatch && anyIdMatch[1]) {
-        return `https://drive.google.com/thumbnail?id=${anyIdMatch[1]}&sz=w400`;
-      }
-
-      const cacheBuster = Date.now();
-      return url.includes("?") ? `${url}&cb=${cacheBuster}` : `${url}?cb=${cacheBuster}`;
-    } catch (e) {
-      console.error("Error processing image URL:", url, e);
-      return url;
-    }
-  };
 
   return (
     <div className="space-y-6 page-content p-6">
@@ -308,40 +132,12 @@ const MyProfile = () => {
         {/* Profile Picture & Basic Info */}
         <div className="bg-white rounded-xl shadow-lg border p-6">
           <div className="text-center">
-            <div className="w-32 h-32 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-              {profileData.candidatePhoto ? (
-                <img
-                  src={getDisplayableImageUrl(profileData.candidatePhoto)}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    console.log("Image failed to load:", e.target.src);
-                    // First try the original URL directly
-                    if (e.target.src !== profileData.candidatePhoto) {
-                      console.log("Trying original URL:", profileData.candidatePhoto);
-                      e.target.src = profileData.candidatePhoto;
-                    } else {
-                      // If that also fails, show user icon
-                      console.log("Both thumbnail and original URL failed");
-                      e.target.style.display = "none";
-                      e.target.nextSibling.style.display = "flex";
-                    }
-                  }}
-                  onLoad={(e) => {
-                    console.log("Image loaded successfully:", e.target.src);
-                  }}
-                />
-              ) : null}
-              <div
-                className={`w-full h-full flex items-center justify-center ${profileData.candidatePhoto ? "hidden" : "flex"
-                  }`}
-              >
-                <User size={48} className="text-indigo-400" />
-              </div>
+            <div className="w-32 h-32 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <User size={48} className="text-indigo-400" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800">{profileData.candidateName}</h2>
-            <p className="text-gray-600">{profileData.designation}</p>
-            <p className="text-sm text-gray-500">{profileData.joiningNo}</p>
+            <h2 className="text-xl font-bold text-gray-800">{profileData.employee_name}</h2>
+            <p className="text-gray-600">{profileData.designation || '-'}</p>
+            <p className="text-sm text-gray-500">{profileData.employee_code}</p>
           </div>
         </div>
 
@@ -363,7 +159,7 @@ const MyProfile = () => {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               ) : (
-                <p className="text-gray-800">{profileData.email}</p>
+                <p className="text-gray-800">{profileData.email || '-'}</p>
               )}
             </div>
 
@@ -375,86 +171,49 @@ const MyProfile = () => {
               {isEditing ? (
                 <input
                   type="tel"
-                  name="mobileNo"
-                  value={formData.mobileNo || ''}
+                  name="mobile_number"
+                  value={formData.mobile_number || ''}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               ) : (
-                <p className="text-gray-800">{profileData.mobileNo}</p>
+                <p className="text-gray-800">{profileData.mobile_number || '-'}</p>
               )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Building size={16} className="inline mr-2" />
-                Company
+                Department
               </label>
-              <p className="text-gray-800">{profileData.companyName}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Calendar size={16} className="inline mr-2" />
-                Joining Date
-              </label>
-              <p className="text-gray-800">{profileData.dateOfJoining}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Father's Name</label>
-              <p className="text-gray-800">{profileData.fatherName}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-              <p className="text-gray-800">{profileData.gender}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-              <p className="text-gray-800">{profileData.bodAsPerAadhar}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
               {isEditing ? (
                 <input
-                  type="tel"
-                  name="familyMobileNo"
-                  value={formData.familyMobileNo || ''}
+                  type="text"
+                  name="department"
+                  value={formData.department || ''}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               ) : (
-                <p className="text-gray-800">{profileData.familyMobileNo}</p>
+                <p className="text-gray-800">{profileData.department || '-'}</p>
               )}
             </div>
 
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin size={16} className="inline mr-2" />
-                Current Address
+                Designation
               </label>
               {isEditing ? (
-                <textarea
-                  name="currentAddress"
-                  value={formData.currentAddress || ''}
+                <input
+                  type="text"
+                  name="designation"
+                  value={formData.designation || ''}
                   onChange={handleInputChange}
-                  rows={3}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               ) : (
-                <p className="text-gray-800 whitespace-pre-line">{profileData.currentAddress}</p>
+                <p className="text-gray-800">{profileData.designation || '-'}</p>
               )}
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin size={16} className="inline mr-2" />
-                Aadhar Address
-              </label>
-              <p className="text-gray-800 whitespace-pre-line">{profileData.addressAsPerAadhar}</p>
             </div>
           </div>
         </div>

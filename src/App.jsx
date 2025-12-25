@@ -3,35 +3,36 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
-import Indent from './pages/Indent';
-import SocialSite from './pages/SocialSite';
-import FindEnquiry from './pages/FindEnquiry';
-import CallTracker from './pages/CallTracker';
-import AfterJoiningWork from './pages/AfterJoiningWork';
 import Leaving from './pages/Leaving';
-import AfterLeavingWork from './pages/AfterLeavingWork';
 import Employee from './pages/Employee';
 import MyProfile from './pages/MyProfile';
 import MyAttendance from './pages/MyAttendance';
 import LeaveRequest from './pages/LeaveRequest';
-import MySalary from './pages/MySalary';
 import CompanyCalendar from './pages/CompanyCalendar';
 import ProtectedRoute from './components/ProtectedRoute';
-import Attendance from './pages/Attendance';
 import LeaveManagement from './pages/LeaveManagement';
-import Attendancedaily from './pages/Attendancedaily';
-import Report from './pages/Report';
-import Payroll from './pages/Payroll';
-import MisReport from './pages/MisReport';
+import LeaveManagerApproval from './pages/LeaveManagerApproval';
+import LeaveHrApproval from './pages/LeaveHrApproval';
+import EmployeeCreate from './pages/EmployeeCreate';
+import RequestCreate from './pages/RequestCreate';
+import TicketCreate from './pages/TicketCreate';
+import TravelStatus from './pages/TravelStatus';
+import ResumeCreate from './pages/ResumeCreate';
+import ResumeRequest from './pages/ResumeRequest';
+import ResumeList from './pages/ResumeList';
+import CandidateStatus from './pages/CandidateStatusPage';
+import SelectedCondidate from './pages/SelectedCondidate';
 
 function App() {
   return (
     <div className="gradient-bg min-h-screen">
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           
           <Route path="/" element={
             <ProtectedRoute>
@@ -39,25 +40,25 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
-            <Route path="indent" element={<Indent />} />
-            {/* <Route path="social-site" element={<SocialSite />} /> */}
-            <Route path="find-enquiry" element={<FindEnquiry />} />
-            <Route path="call-tracker" element={<CallTracker />} />
-            <Route path="after-joining-work" element={<AfterJoiningWork />} />
             <Route path="leaving" element={<Leaving />} />
-            <Route path="after-leaving-work" element={<AfterLeavingWork />} />
             <Route path="employee" element={<Employee />} />
+             <Route path="resume-request" element={<ResumeRequest />} />
+             <Route path="resume-list" element={<ResumeList />} />
+            <Route path="employee-create" element={<EmployeeCreate />} />
+             <Route path="condidate-list" element={<CandidateStatus />} />
+              <Route path="condidate-select" element={<SelectedCondidate />} />
+            <Route path="requests" element={<RequestCreate />} />
+            <Route path="tickets" element={<TicketCreate />} />
+            <Route path="travel-status" element={<TravelStatus />} />
+            <Route path="resumes" element={<ResumeCreate />} />
             <Route path="my-profile" element={<MyProfile />} />
             <Route path="my-attendance" element={<MyAttendance />} />
             <Route path="leave-request" element={<LeaveRequest />} />
-            <Route path="my-salary" element={<MySalary />} />
             <Route path="company-calendar" element={<CompanyCalendar />} />
-             <Route path="leave-management" element={<LeaveManagement />} />
-              <Route path="attendance" element={<Attendance />} />
-              <Route path="attendancedaily" element={<Attendancedaily />} />
-              <Route path="report" element={<Report />} />
-              <Route path="payroll" element={<Payroll />} />
-              <Route path="misreport" element={<MisReport />} />
+            <Route path="leave-management" element={<LeaveManagement />} />
+            <Route path="leave-approvals" element={<LeaveManagerApproval />} />
+            <Route path="leave-hr-approvals" element={<LeaveHrApproval />} />
+              <Route path="resume" element={<ResumeCreate />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

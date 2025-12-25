@@ -44,10 +44,8 @@ const Indent = () => {
     const loadData = async () => {
       setTableLoading(true);
       const result = await fetchIndentDataFromRow7();
-      if (result.success) {
-        console.log('Data from row 7:', result.data);
-      } else {
-        console.error('Error:', result.error);
+      if (!result.success) {
+        toast.error(result.error || 'Failed to load indent data.');
       }
       setTableLoading(false);
     };
@@ -65,7 +63,7 @@ const generateIndentNumber = async () => {
     // Fallback if fetch fails
     return 'REC-01';
   } catch (error) {
-    console.error('Error generating indent number:', error);
+    toast.error('Failed to generate indent number.');
     return 'REC-01';
   }
 };
@@ -148,8 +146,6 @@ const fetchLastIndentNumber = async () => {
     );
     
     const result = await response.json();
-    console.log('Full sheet data:', result); // Debugging
-    
     if (result.success && result.data && result.data.length > 1) {
       // Find the first row with actual headers (skip empty rows)
       let headerRowIndex = 0;
@@ -163,8 +159,6 @@ const fetchLastIndentNumber = async () => {
       }
       
       const headers = result.data[headerRowIndex].map(h => h ? h.trim().toLowerCase() : '');
-      console.log('Headers found:', headers);
-      
       // Try to find the indent number column by common names
       const possibleNames = ['indent number', 'indentnumber', 'indent_no', 'indentno', 'indent'];
       let indentNumberIndex = -1;
@@ -177,7 +171,6 @@ const fetchLastIndentNumber = async () => {
       if (indentNumberIndex === -1) {
         // If still not found, try to find by position (from your screenshot it's column B/index 1)
         indentNumberIndex = 1;
-        console.warn('Using fallback column index 1 for indent number');
       }
       
       // Find the last non-empty row with data
@@ -197,8 +190,6 @@ const fetchLastIndentNumber = async () => {
       }
       
       const lastIndentNumber = result.data[lastDataRowIndex][indentNumberIndex];
-      console.log('Last indent number found:', lastIndentNumber);
-      
       // Extract numeric part from "REC-01" format
       let numericValue = 0;
       if (typeof lastIndentNumber === 'string') {
@@ -221,7 +212,6 @@ const fetchLastIndentNumber = async () => {
       };
     }
   } catch (error) {
-    console.error('Error in fetchLastIndentNumber:', error);
     return {
       success: false,
       error: error.message,
@@ -274,8 +264,6 @@ const handleSubmit = async (e) => {
 
       // Format the competition date to MM/DD/YYYY for Google Sheets
       const formattedDate = formatDateForSheet(formData.competitionDate);
-      console.log(indentNumber);
-
       const rowData = [
         timestamp,
         indentNumber,
@@ -320,7 +308,6 @@ const handleSubmit = async (e) => {
         toast.error('Failed to insert: ' + (result.error || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Insert error:', error);
       toast.error('Something went wrong!');
     } finally {
       setSubmitting(false);
