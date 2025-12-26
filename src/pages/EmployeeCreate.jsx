@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Pencil, Trash2, UserPlus } from 'lucide-react';
 import { createEmployee, deleteEmployee, getEmployees, updateEmployee } from '../api/employeeApi';
@@ -11,7 +11,7 @@ const initialForm = {
   mobile_number: '',
   department: '',
   designation: '',
-  role: 'User',
+  role: 'user',
   status: 'Active',
   password: '',
 };
@@ -24,6 +24,8 @@ const EmployeeCreate = () => {
   const [tableError, setTableError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [searchName, setSearchName] = useState('');
+  const [searchDepartment, setSearchDepartment] = useState('');
   const { token, user } = useAuth();
 
   const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
@@ -149,6 +151,20 @@ const EmployeeCreate = () => {
     setForm(initialForm);
     setEditingId(null);
   };
+
+  const filteredEmployees = useMemo(() => {
+    const nameTerm = searchName.trim().toLowerCase();
+    const deptTerm = searchDepartment.trim().toLowerCase();
+    return employees.filter((employee) => {
+      if (nameTerm && !(employee?.employee_name ?? '').toLowerCase().includes(nameTerm)) {
+        return false;
+      }
+      if (deptTerm && !(employee?.department ?? '').toLowerCase().includes(deptTerm)) {
+        return false;
+      }
+      return true;
+    });
+  }, [employees, searchName, searchDepartment]);
 
   return (
     <div className="min-h-screen py-6 sm:py-10">
@@ -290,8 +306,8 @@ const EmployeeCreate = () => {
                     onChange={handleChange}
                     className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                   >
-                    <option value="User">User</option>
-                    <option value="Admin">Admin</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
                   </select>
                 </div>
 
@@ -355,6 +371,31 @@ const EmployeeCreate = () => {
               </div>
             </div>
 
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="text-xs font-medium text-gray-600" htmlFor="searchName">Search name</label>
+                <input
+                  id="searchName"
+                  name="searchName"
+                  value={searchName}
+                  onChange={(event) => setSearchName(event.target.value)}
+                  placeholder="Jane Doe"
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600" htmlFor="searchDepartment">Search department</label>
+                <input
+                  id="searchDepartment"
+                  name="searchDepartment"
+                  value={searchDepartment}
+                  onChange={(event) => setSearchDepartment(event.target.value)}
+                  placeholder="IT, HR, Finance"
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
+              </div>
+            </div>
+
             <div className="mt-4 overflow-hidden rounded-xl border border-gray-200">
               <div className="max-h-[60vh] overflow-auto">
                 <table className="min-w-[900px] w-full text-left text-sm">
@@ -388,15 +429,15 @@ const EmployeeCreate = () => {
                       </tr>
                     )}
 
-                    {!tableLoading && !tableError && employees.length === 0 && (
+                    {!tableLoading && !tableError && filteredEmployees.length === 0 && (
                       <tr>
                         <td colSpan="9" className="px-4 py-8 text-center text-sm text-gray-500">
-                          No employees found.
+                          No employees found for the selected filters.
                         </td>
                       </tr>
                     )}
 
-                    {!tableLoading && !tableError && employees.map((employee) => {
+                    {!tableLoading && !tableError && filteredEmployees.map((employee) => {
                       const employeeId = getEmployeeId(employee);
                       return (
                         <tr key={employeeId ?? employee?.employee_code} className="hover:bg-gray-50">
