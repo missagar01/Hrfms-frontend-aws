@@ -99,7 +99,7 @@ const Sidebar = ({ onClose }) => {
     ...(canApproveLeaves ? [{ path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' }] : []),
     ...(canApproveHrLeaves ? [{ path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }] : []),
     // { path: '/my-salary', icon: DollarSign, label: 'My Salary' },
-    { path: '/company-calendar', icon: Calendar, label: 'Company Calendar' },
+    // { path: '/company-calendar', icon: Calendar, label: 'Company Calendar' },
   ];
 
   const menuItems = isAdmin
@@ -112,6 +112,7 @@ const Sidebar = ({ onClose }) => {
             { path: '/resume-list', icon: BadgeDollarSign, label: 'Resume List' },
              { path: '/condidate-list', icon: BadgeDollarSign, label: 'Interviwer List' },
               { path: '/condidate-select', icon: BadgeDollarSign, label: 'Selected Condidate' },
+               { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' },
         ]
       : employeeMenuItems);
 

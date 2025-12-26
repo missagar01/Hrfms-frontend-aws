@@ -24,6 +24,23 @@ import ResumeRequest from './pages/ResumeRequest';
 import ResumeList from './pages/ResumeList';
 import CandidateStatus from './pages/CandidateStatusPage';
 import SelectedCondidate from './pages/SelectedCondidate';
+import { useAuth } from './context/AuthContext';
+
+const RoleBasedHome = () => {
+  const { user, isInitializing } = useAuth();
+
+  if (isInitializing) {
+    return null;
+  }
+
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
+
+  if (isAdmin) {
+    return <Dashboard />;
+  }
+
+  return <Navigate to="/my-profile" replace />;
+};
 
 function App() {
   return (
@@ -39,7 +56,7 @@ function App() {
               <Layout />
             </ProtectedRoute>
           }>
-            <Route index element={<Dashboard />} />
+            <Route index element={<RoleBasedHome />} />
             <Route path="leaving" element={<Leaving />} />
             <Route path="employee" element={<Employee />} />
              <Route path="resume-request" element={<ResumeRequest />} />
