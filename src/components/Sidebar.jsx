@@ -93,20 +93,27 @@ const Sidebar = ({ onClose }) => {
       ? [
           { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
           { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
-          { path: '/resume', icon: BadgeDollarSign, label: 'MainPower Request' },
-          { path: '/resume-list', icon: BadgeDollarSign, label: 'Resume List' },
-          { path: '/condidate-list', icon: BadgeDollarSign, label: 'Interviwer List' },
-          { path: '/condidate-select', icon: BadgeDollarSign, label: 'Selected Condidate' },
         ]
       : []),
     { path: '/leave-request', icon: LeaveIcon, label: 'Leave Request' },
     ...(canApproveLeaves ? [{ path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' }] : []),
     ...(canApproveHrLeaves ? [{ path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }] : []),
     // { path: '/my-salary', icon: DollarSign, label: 'My Salary' },
-    // { path: '/company-calendar', icon: Calendar, label: 'Company Calendar' },
+    { path: '/company-calendar', icon: Calendar, label: 'Company Calendar' },
   ];
 
-  const menuItems = isAdmin ? adminMenuItems : employeeMenuItems;
+  const menuItems = isAdmin
+    ? adminMenuItems
+    : (canSeeTickets
+      ? [
+          { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
+          { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
+            { path: '/resume', icon: BadgeDollarSign, label: 'MainPower Request' },
+            { path: '/resume-list', icon: BadgeDollarSign, label: 'Resume List' },
+             { path: '/condidate-list', icon: BadgeDollarSign, label: 'Interviwer List' },
+              { path: '/condidate-select', icon: BadgeDollarSign, label: 'Selected Condidate' },
+        ]
+      : employeeMenuItems);
 
   const SidebarContent = ({ onClose, isCollapsed = false }) => (
     <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-indigo-900 text-white`}>
