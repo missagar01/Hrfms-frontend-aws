@@ -41,7 +41,9 @@ const LeaveRequest = () => {
     designation: designationValue || '',
     fromDate: '',
     toDate: '',
-    reason: ''
+    reason: '',
+    mobilenumber: '',
+    urgent_mobilenumber: ''
   });
 
   useEffect(() => {
@@ -214,6 +216,8 @@ const handleSubmit = async (e) => {
       from_date: formData.fromDate,
       to_date: formData.toDate,
       reason: reasonText,
+      mobilenumber: formData.mobilenumber ?? null,
+      urgent_mobilenumber: formData.urgent_mobilenumber ?? null,
       request_status: 'Pending'
     };
 
@@ -231,7 +235,9 @@ const handleSubmit = async (e) => {
         designation: designationValue,
         fromDate: '',
         toDate: '',
-        reason: ''
+        reason: '',
+        mobilenumber: '',
+        urgent_mobilenumber: ''
       });
       setShowModal(false);
       fetchLeaveData();
@@ -449,6 +455,33 @@ const handleSubmit = async (e) => {
                     value={departmentValue || ''}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none"
                     readOnly
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mobile Number
+                  </label>
+                  <input
+                    type="text"
+                    name="mobilenumber"
+                    value={formData.mobilenumber || ''}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 8103490342"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Urgent Mobile Number
+                  </label>
+                  <input
+                    type="text"
+                    name="urgent_mobilenumber"
+                    value={formData.urgent_mobilenumber || ''}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 93293232"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 

@@ -86,7 +86,7 @@ const Sidebar = ({ onClose }) => {
     // { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' },
     // { path: '/my-attendance', icon: Clock, label: 'My Attendance' },
-    { path: '/resume-request', icon: BadgeDollarSign, label: 'Resume Request' },
+    { path: '/resume-request', icon: BadgeDollarSign, label: 'MainPower Request' },
     { path: '/requests', icon: NotebookPen, label: 'Travel Form' },
     ...(canCreateResume ? [{ path: '/resume-create', icon: FileText, label: 'Resume' }] : []),
     ...(canSeeTickets
@@ -109,8 +109,8 @@ const Sidebar = ({ onClose }) => {
           { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
           { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
             { path: '/resume', icon: BadgeDollarSign, label: 'MainPower Request' },
-            { path: '/resume-list', icon: BadgeDollarSign, label: 'MainPower List' },
-             { path: '/condidate-list', icon: BadgeDollarSign, label: 'Condidate List' },
+            { path: '/resume-list', icon: BadgeDollarSign, label: 'Resume List' },
+             { path: '/condidate-list', icon: BadgeDollarSign, label: 'Interviwer List' },
               { path: '/condidate-select', icon: BadgeDollarSign, label: 'Selected Condidate' },
         ]
       : employeeMenuItems);

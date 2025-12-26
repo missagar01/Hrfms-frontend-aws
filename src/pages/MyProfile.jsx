@@ -191,6 +191,7 @@ const MyProfile = () => {
                   type="text"
                   name="department"
                   value={formData.department || ''}
+                   readOnly
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
@@ -208,6 +209,7 @@ const MyProfile = () => {
                   type="text"
                   name="designation"
                   value={formData.designation || ''}
+                   readOnly
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />

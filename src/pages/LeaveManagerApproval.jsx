@@ -225,7 +225,10 @@ const LeaveManagerApproval = () => {
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">From</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">To</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Reason</th>
-                    <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Status</th>
+                    
+                      <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Mobile Number</th>
+                        <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Urgent Mobile Number</th>
+                        <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Status</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">HR Approval</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3 text-right">Action</th>
                   </tr>
@@ -260,6 +263,8 @@ const LeaveManagerApproval = () => {
                       <td className="px-2 sm:px-4 py-3 whitespace-nowrap">{item.from_date ? new Date(item.from_date).toLocaleDateString() : '-'}</td>
                       <td className="px-2 sm:px-4 py-3 whitespace-nowrap">{item.to_date ? new Date(item.to_date).toLocaleDateString() : '-'}</td>
                       <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.reason || '-'}</td>
+                        <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.mobilenumber || '-'}</td>
+                          <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.urgent_mobilenumber || '-'}</td>
                       <td className="px-2 sm:px-4 py-3">{item.approved_by_status || item.request_status || '-'}</td>
                       <td className="px-2 sm:px-4 py-3">{item.hr_approval || '-'}</td>
                       <td className="px-2 sm:px-4 py-3">
