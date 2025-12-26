@@ -150,7 +150,7 @@ const Signup = () => {
                 onChange={handleChange}
                 required
                 className="mt-2 w-full rounded-lg border border-indigo-200 bg-white/70 px-3 py-2 text-sm text-indigo-800 shadow-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                placeholder="8103490174"
+                placeholder="8103678174"
               />
             </div>
 
