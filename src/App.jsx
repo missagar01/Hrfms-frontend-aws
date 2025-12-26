@@ -24,18 +24,6 @@ import ResumeRequest from './pages/ResumeRequest';
 import ResumeList from './pages/ResumeList';
 import CandidateStatus from './pages/CandidateStatusPage';
 import SelectedCondidate from './pages/SelectedCondidate';
-import { useAuth } from './context/AuthContext';
-
-const AdminDashboardGuard = () => {
-  const { user } = useAuth();
-  const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
-
-  if (!isAdmin) {
-    return <Navigate to="/my-profile" replace />;
-  }
-
-  return <Dashboard />;
-};
 
 function App() {
   return (
@@ -51,7 +39,7 @@ function App() {
               <Layout />
             </ProtectedRoute>
           }>
-            <Route index element={<AdminDashboardGuard />} />
+            <Route index element={<Dashboard />} />
             <Route path="leaving" element={<Leaving />} />
             <Route path="employee" element={<Employee />} />
              <Route path="resume-request" element={<ResumeRequest />} />
