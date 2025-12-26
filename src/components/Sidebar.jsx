@@ -103,7 +103,7 @@ const Sidebar = ({ onClose }) => {
     ...(canApproveLeaves ? [{ path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' }] : []),
     ...(canApproveHrLeaves ? [{ path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }] : []),
     // { path: '/my-salary', icon: DollarSign, label: 'My Salary' },
-    { path: '/company-calendar', icon: Calendar, label: 'Company Calendar' },
+    // { path: '/company-calendar', icon: Calendar, label: 'Company Calendar' },
   ];
 
   const menuItems = isAdmin ? adminMenuItems : employeeMenuItems;
