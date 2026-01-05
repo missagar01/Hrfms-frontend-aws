@@ -1,30 +1,37 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import Layout from './components/Layout';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
-import Leaving from './pages/Leaving';
-import Employee from './pages/Employee';
-import MyProfile from './pages/MyProfile';
-import MyAttendance from './pages/MyAttendance';
-import LeaveRequest from './pages/LeaveRequest';
-import CompanyCalendar from './pages/CompanyCalendar';
-import ProtectedRoute from './components/ProtectedRoute';
-import LeaveManagement from './pages/LeaveManagement';
-import LeaveManagerApproval from './pages/LeaveManagerApproval';
-import LeaveHrApproval from './pages/LeaveHrApproval';
-import EmployeeCreate from './pages/EmployeeCreate';
-import RequestCreate from './pages/RequestCreate';
-import TicketCreate from './pages/TicketCreate';
-import TravelStatus from './pages/TravelStatus';
-import ResumeCreate from './pages/ResumeCreate';
-import ResumeRequest from './pages/ResumeRequest';
-import ResumeList from './pages/ResumeList';
-import CandidateStatus from './pages/CandidateStatusPage';
-import SelectedCondidate from './pages/SelectedCondidate';
-import { useAuth } from './context/AuthContext';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import Layout from "./components/Layout";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import Leaving from "./pages/Leaving";
+import Employee from "./pages/Employee";
+import MyProfile from "./pages/MyProfile";
+import MyAttendance from "./pages/MyAttendance";
+import LeaveRequest from "./pages/LeaveRequest";
+import CompanyCalendar from "./pages/CompanyCalendar";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LeaveManagement from "./pages/LeaveManagement";
+import LeaveManagerApproval from "./pages/LeaveManagerApproval";
+import LeaveHrApproval from "./pages/LeaveHrApproval";
+import EmployeeCreate from "./pages/EmployeeCreate";
+import RequestCreate from "./pages/RequestCreate";
+import TicketCreate from "./pages/TicketCreate";
+import TravelStatus from "./pages/TravelStatus";
+import ResumeCreate from "./pages/ResumeCreate";
+import ResumeRequest from "./pages/ResumeRequest";
+import ResumeList from "./pages/ResumeList";
+import CandidateStatus from "./pages/CandidateStatusPage";
+import SelectedCondidate from "./pages/SelectedCondidate";
+import { useAuth } from "./context/AuthContext";
+import PlaneVisitor from "./pages/PlantVisitor";
+import PlantVisitorList from "./pages/PlantVisitorList";
 
 const RoleBasedHome = () => {
   const { user, isInitializing } = useAuth();
@@ -33,7 +40,8 @@ const RoleBasedHome = () => {
     return null;
   }
 
-  const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
+  const isAdmin =
+    (user?.role || "").toLowerCase() === "admin" || user?.Admin === "Yes";
 
   if (isAdmin) {
     return <Dashboard />;
@@ -50,20 +58,23 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }>
+
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<RoleBasedHome />} />
             <Route path="leaving" element={<Leaving />} />
             <Route path="employee" element={<Employee />} />
-             <Route path="resume-request" element={<ResumeRequest />} />
-             <Route path="resume-list" element={<ResumeList />} />
+            <Route path="resume-request" element={<ResumeRequest />} />
+            <Route path="resume-list" element={<ResumeList />} />
             <Route path="employee-create" element={<EmployeeCreate />} />
-             <Route path="condidate-list" element={<CandidateStatus />} />
-              <Route path="condidate-select" element={<SelectedCondidate />} />
+            <Route path="condidate-list" element={<CandidateStatus />} />
+            <Route path="condidate-select" element={<SelectedCondidate />} />
             <Route path="requests" element={<RequestCreate />} />
             <Route path="tickets" element={<TicketCreate />} />
             <Route path="travel-status" element={<TravelStatus />} />
@@ -75,7 +86,9 @@ function App() {
             <Route path="leave-management" element={<LeaveManagement />} />
             <Route path="leave-approvals" element={<LeaveManagerApproval />} />
             <Route path="leave-hr-approvals" element={<LeaveHrApproval />} />
-              <Route path="resume" element={<ResumeCreate />} />
+            <Route path="resume" element={<ResumeCreate />} />
+            <Route path="plant-visitor" element={<PlaneVisitor />} />
+            <Route path="plant-visitorlist" element={<PlantVisitorList />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

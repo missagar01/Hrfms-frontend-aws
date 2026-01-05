@@ -61,6 +61,9 @@ const TicketCreate = () => {
   );
 
   const handleChange = (event) => {
+    if (event.target.readOnly) {
+      return;
+    }
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };

@@ -126,6 +126,7 @@ const RequestCreate = () => {
                 name="person_name"
                 value={personNameValue}
                 onChange={handleChange}
+                readOnly
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 placeholder="Rupesh Sahu"
                 required
@@ -139,10 +140,11 @@ const RequestCreate = () => {
                 name="employee_code"
                 value={employeeCodeValue}
                 onChange={handleChange}
+                readOnly
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 placeholder="S00001"
                 required
-                readOnly={Boolean(defaultEmployeeCode)}
+                readOnly
               />
             </div>
 

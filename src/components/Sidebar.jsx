@@ -78,6 +78,8 @@ const Sidebar = ({ onClose }) => {
   const canApproveLeaves = approverEmployeeCodes.includes(user?.employee_code || '');
   const hrEmployeeCodes = ['S08046', 'S09103'];
   const canApproveHrLeaves = hrEmployeeCodes.includes(user?.employee_code || '');
+  const plantVisitorListCodes = ['S00002', 'S00116'];
+  const canViewPlantVisitorList = plantVisitorListCodes.includes(user?.employee_code || '');
   const adminMenuItems = canApproveHrLeaves
     ? [...adminMenuItemsBase, { path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }]
     : adminMenuItemsBase;
@@ -96,6 +98,11 @@ const Sidebar = ({ onClose }) => {
         ]
       : []),
     { path: '/leave-request', icon: LeaveIcon, label: 'Leave Request' },
+     { path: '/plant-visitor', icon: LeaveIcon, label: 'Plant Visitor' },
+    ...(canViewPlantVisitorList
+      ? [{ path: '/plant-visitorlist', icon: LeaveIcon, label: 'Plant Visitor List' }]
+      : []),
+      
     ...(canApproveLeaves ? [{ path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' }] : []),
     ...(canApproveHrLeaves ? [{ path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }] : []),
     // { path: '/my-salary', icon: DollarSign, label: 'My Salary' },
