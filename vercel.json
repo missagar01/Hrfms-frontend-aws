@@ -10,6 +10,10 @@
       "source": "/(.*)",
       "headers": [
         {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
         },
@@ -19,7 +23,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; frame-ancestors 'self' https://hrfms.sagartmt.com https://hrfms-frontend-aws.vercel.app; style-src 'self' 'unsafe-inline'; connect-src 'self' https://hrfms.sagartmt.com"
+          "value": "default-src 'self'; frame-ancestors 'self' https://my-dashboard-olive-alpha.vercel.app; style-src 'self' 'unsafe-inline'; connect-src 'self' https://hrfms.sagartmt.com"
         }
       ]
     }
