@@ -1,8 +1,28 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { Pencil, Trash2, UserPlus } from 'lucide-react';
+import { Pencil, Trash2, UserPlus, X, ChevronDown } from 'lucide-react';
 import { createEmployee, deleteEmployee, getEmployees, updateEmployee } from '../api/employeeApi';
 import { useAuth } from '../context/AuthContext';
+
+// Available routes for page access
+const availableRoutes = [
+  { path: '/', label: 'Dashboard' },
+  { path: '/my-profile', label: 'My Profile' },
+  { path: '/resume-request', label: 'MainPower Request' },
+  { path: '/requests', label: 'Travel Form' },
+  { path: '/resumes', label: 'Resume' },
+  { path: '/tickets', label: 'Tickets' },
+  { path: '/travel-status', label: 'Travel Status' },
+  { path: '/leave-request', label: 'Leave Request' },
+  { path: '/plant-visitor', label: 'Plant Visitor' },
+  { path: '/plant-visitorlist', label: 'Plant Visitor List' },
+  { path: '/leave-approvals', label: 'Leave Approvals' },
+  { path: '/leave-hr-approvals', label: 'HR Approvals' },
+  { path: '/resume-list', label: 'MainPower List' },
+  { path: '/condidate-list', label: 'Interviwer List' },
+  { path: '/condidate-select', label: 'Selected Condidate' },
+  { path: '/employee-create', label: 'Employee' },
+];
 
 const initialForm = {
   employee_code: '',
@@ -14,6 +34,7 @@ const initialForm = {
   role: 'user',
   status: 'Active',
   password: '',
+  page_access: [],
 };
 
 const EmployeeCreate = () => {
@@ -23,9 +44,13 @@ const EmployeeCreate = () => {
   const [tableLoading, setTableLoading] = useState(false);
   const [tableError, setTableError] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [originalPayload, setOriginalPayload] = useState(null);
   const [searchName, setSearchName] = useState('');
   const [searchDepartment, setSearchDepartment] = useState('');
+  const [showPageAccessDropdown, setShowPageAccessDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   const { token, user } = useAuth();
 
   const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
@@ -55,9 +80,152 @@ const EmployeeCreate = () => {
     fetchEmployees();
   }, [token]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowPageAccessDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === 'Escape' && showEditModal) {
+        setShowEditModal(false);
+        setEditingId(null);
+        setForm(initialForm);
+        setOriginalPayload(null);
+      }
+    };
+
+    if (showEditModal) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showEditModal]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePageAccessToggle = (routePath) => {
+    setForm((prev) => {
+      const currentAccess = Array.isArray(prev.page_access) ? prev.page_access : [];
+      const isSelected = currentAccess.includes(routePath);
+      
+      const newPageAccess = isSelected
+        ? currentAccess.filter(path => path !== routePath)
+        : [...currentAccess, routePath];
+      
+      console.log('Page access toggle - routePath:', routePath, 'isSelected:', isSelected, 'newPageAccess:', newPageAccess);
+      
+      return { ...prev, page_access: newPageAccess };
+    });
+  };
+
+  // Debug: Log form.page_access changes
+  useEffect(() => {
+    console.log('Form page_access changed:', form.page_access);
+  }, [form.page_access]);
+
+  const normalizePageAccessInput = (value) => {
+    if (!value) {
+      return [];
+    }
+    if (Array.isArray(value)) {
+      return value;
+    }
+    if (typeof value === 'string') {
+      // Handle both JSON string and comma-separated string
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch {
+        // If JSON parsing fails, treat as comma-separated string
+        return value
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+    }
+    return [];
+  };
+
+  const buildPayload = () => {
+    // Get current form page_access directly - don't normalize again as it's already normalized when set
+    const currentPageAccess = form.page_access;
+    const pageAccessArray = Array.isArray(currentPageAccess) 
+      ? currentPageAccess 
+      : normalizePageAccessInput(currentPageAccess);
+    
+    // Debug logging
+    console.log('Building payload - form.page_access:', form.page_access, 'pageAccessArray:', pageAccessArray);
+    
+    const payload = {
+      employee_code: form.employee_code.trim(),
+      employee_name: form.employee_name.trim(),
+      email: form.email.trim(),
+      mobile_number: form.mobile_number.trim(),
+      department: form.department.trim(),
+      designation: form.designation.trim(),
+      role: form.role,
+      status: form.status,
+      password: form.password,
+      page_access: pageAccessArray, // Always send as array
+    };
+
+    if (editingId && !payload.password) {
+      delete payload.password;
+    }
+
+    return payload;
+  };
+
+  const hasPayloadChanged = (payload) => {
+    if (!originalPayload) {
+      return true;
+    }
+
+    const keysToCompare = [
+      'employee_code',
+      'employee_name',
+      'email',
+      'mobile_number',
+      'department',
+      'designation',
+      'role',
+      'status',
+      'password',
+    ];
+
+    for (const key of keysToCompare) {
+      if ((payload[key] || '') !== (originalPayload[key] || '')) {
+        return true;
+      }
+    }
+
+    const arePageAccessEqual =
+      (payload.page_access || []).length === (originalPayload.page_access || []).length &&
+      payload.page_access.every((accessItem, index) => accessItem === (originalPayload.page_access || [])[index]);
+
+    return !arePageAccessEqual;
   };
 
   const handleSubmit = async (event) => {
@@ -75,14 +243,49 @@ const EmployeeCreate = () => {
 
     setSubmitting(true);
     try {
-      const payload = { ...form };
-      if (isEditing && !payload.password) {
+      // Get the latest form state directly to ensure we have the current page_access
+      const currentFormState = { ...form };
+      console.log('Current form state before buildPayload:', currentFormState);
+      
+      // Temporarily override form for buildPayload to use latest state
+      const originalForm = form;
+      const tempForm = { ...form, ...currentFormState };
+      
+      // Build payload with explicit page_access
+      const pageAccessArray = Array.isArray(currentFormState.page_access) 
+        ? currentFormState.page_access 
+        : normalizePageAccessInput(currentFormState.page_access);
+      
+      const payload = {
+        employee_code: currentFormState.employee_code.trim(),
+        employee_name: currentFormState.employee_name.trim(),
+        email: currentFormState.email.trim(),
+        mobile_number: currentFormState.mobile_number.trim(),
+        department: currentFormState.department.trim(),
+        designation: currentFormState.designation.trim(),
+        role: currentFormState.role,
+        status: currentFormState.status,
+        password: currentFormState.password,
+        page_access: pageAccessArray,
+      };
+
+      if (editingId && !payload.password) {
         delete payload.password;
+      }
+
+      console.log('Submitting payload:', JSON.stringify(payload, null, 2));
+
+      if (isEditing && !hasPayloadChanged(payload)) {
+        toast('No changes detected');
+        setSubmitting(false);
+        return;
       }
 
       const response = isEditing
         ? await updateEmployee(editingId, payload, token)
         : await createEmployee(payload, token);
+
+      console.log('Response received:', response);
 
       if (!response?.success) {
         toast.error(response?.message || 'Failed to create employee');
@@ -93,8 +296,11 @@ const EmployeeCreate = () => {
       setForm(initialForm);
       setEditingId(null);
       setShowForm(false);
+      setShowEditModal(false);
       fetchEmployees();
+      setOriginalPayload(null);
     } catch (error) {
+      console.error('Error submitting:', error);
       toast.error(error?.message || 'Failed to create employee');
     } finally {
       setSubmitting(false);
@@ -109,18 +315,37 @@ const EmployeeCreate = () => {
     }
 
     setEditingId(employeeId);
-    setForm({
+    const normalizedPageAccessValue = normalizePageAccessInput(employee?.page_access);
+    console.log('Editing employee - page_access:', employee?.page_access, 'normalized:', normalizedPageAccessValue);
+
+    const formValues = {
       employee_code: employee?.employee_code ?? '',
       employee_name: employee?.employee_name ?? '',
       email: employee?.email ?? '',
       mobile_number: employee?.mobile_number ?? '',
       department: employee?.department ?? '',
       designation: employee?.designation ?? '',
-      role: employee?.role ?? 'User',
+      page_access: normalizedPageAccessValue,
+      role: employee?.role ?? 'user',
       status: employee?.status ?? 'Active',
       password: '',
+    };
+
+    setOriginalPayload({
+      employee_code: formValues.employee_code,
+      employee_name: formValues.employee_name,
+      email: formValues.email,
+      mobile_number: formValues.mobile_number,
+      department: formValues.department,
+      designation: formValues.designation,
+      role: formValues.role,
+      status: formValues.status,
+      password: '',
+      page_access: [...normalizedPageAccessValue],
     });
-    setShowForm(true);
+
+    setForm(formValues);
+    setShowEditModal(true);
   };
 
   const handleDelete = async (employee) => {
@@ -150,6 +375,14 @@ const EmployeeCreate = () => {
   const handleReset = () => {
     setForm(initialForm);
     setEditingId(null);
+    setOriginalPayload(null);
+  };
+
+  const handleCloseModal = () => {
+    setShowEditModal(false);
+    setEditingId(null);
+    setForm(initialForm);
+    setOriginalPayload(null);
   };
 
   const filteredEmployees = useMemo(() => {
@@ -166,38 +399,269 @@ const EmployeeCreate = () => {
     });
   }, [employees, searchName, searchDepartment]);
 
+  const selectedPageAccess = Array.isArray(form.page_access) ? form.page_access : [];
+
+  // Render form component (used in both inline and modal)
+  const renderForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="employee_code">Employee Code</label>
+          <input
+            id="employee_code"
+            name="employee_code"
+            value={form.employee_code}
+            onChange={handleChange}
+            required
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            placeholder="S01111"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="employee_name">Employee Name</label>
+          <input
+            id="employee_name"
+            name="employee_name"
+            value={form.employee_name}
+            onChange={handleChange}
+            required
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            placeholder="Rupesh Sahu"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            placeholder="rupesh@gmail.com"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="mobile_number">Mobile Number</label>
+          <input
+            id="mobile_number"
+            name="mobile_number"
+            value={form.mobile_number}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            placeholder="81034dd174"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="department">Department</label>
+          <input
+            id="department"
+            name="department"
+            value={form.department}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            placeholder="IT"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="designation">Designation</label>
+          <input
+            id="designation"
+            name="designation"
+            value={form.designation}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            placeholder="Developer"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="role">Role</label>
+          <select
+            id="role"
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          >
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="status">Status</label>
+          <select
+            id="status"
+            name="status"
+            value={form.status}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          >
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
+        {!isEditing && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              required={!isEditing}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              placeholder="Enter password"
+            />
+          </div>
+        )}
+
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="page_access">Page Access</label>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setShowPageAccessDropdown(!showPageAccessDropdown)}
+              className="w-full flex items-center justify-between rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white"
+            >
+              <span className="truncate">
+                {selectedPageAccess.length > 0
+                  ? `${selectedPageAccess.length} page(s) selected`
+                  : 'Select pages...'}
+              </span>
+              <ChevronDown 
+                size={16} 
+                className={`ml-2 flex-shrink-0 transform transition-transform ${showPageAccessDropdown ? 'rotate-180' : ''}`} 
+              />
+            </button>
+            
+            {showPageAccessDropdown && (
+              <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-300 bg-white shadow-lg max-h-60 overflow-auto">
+                <div className="p-2 space-y-1">
+                  {availableRoutes.map((route) => {
+                    const isSelected = selectedPageAccess.includes(route.path);
+                    return (
+                      <label
+                        key={route.path}
+                        className="flex items-center px-3 py-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handlePageAccessToggle(route.path)}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-3 text-sm text-gray-700 flex-1">{route.label}</span>
+                        <span className="ml-auto text-xs text-gray-500 hidden sm:inline">{route.path}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {selectedPageAccess.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {selectedPageAccess.map((path) => {
+                const route = availableRoutes.find(r => r.path === path);
+                return (
+                  <span
+                    key={path}
+                    className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 sm:px-3 py-1 text-xs font-medium text-indigo-800"
+                  >
+                    {route?.label || path}
+                    <button
+                      type="button"
+                      onClick={() => handlePageAccessToggle(path)}
+                      className="ml-1 text-indigo-600 hover:text-indigo-800"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end pt-4">
+        {isEditing && (
+          <button
+            type="button"
+            onClick={handleCloseModal}
+            className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-gray-700 hover:border-gray-400"
+          >
+            Cancel
+          </button>
+        )}
+        {!isEditing && (
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-gray-700 hover:border-gray-400"
+          >
+            Reset
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {submitting ? 'Saving...' : isEditing ? 'Update Employee' : 'Create Employee'}
+        </button>
+      </div>
+    </form>
+  );
+
   return (
-    <div className="min-h-screen py-6 sm:py-10">
-      <div className="mx-auto w-full max-w-none space-y-6 px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xl">
+    <div className="min-h-screen py-4 sm:py-6 lg:py-10">
+      <div className="w-full space-y-4 sm:space-y-6 px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="rounded-2xl bg-white p-4 sm:p-6 lg:p-8 shadow-xl">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Employee</p>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Employee Management</h1>
-              <p className="mt-1 text-sm text-gray-500">Create, update, and manage employee access.</p>
+              <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-indigo-600">Employee</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">Employee Management</h1>
+              <p className="mt-1 text-xs sm:text-sm text-gray-500">Create, update, and manage employee access.</p>
             </div>
-            <div className="flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-indigo-700">
-              <UserPlus size={18} />
-              <span className="text-sm font-semibold">HR FMS</span>
+            <div className="flex items-center gap-2 rounded-full bg-indigo-50 px-3 sm:px-4 py-2 text-indigo-700">
+              <UserPlus size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="text-xs sm:text-sm font-semibold">HR FMS</span>
             </div>
           </div>
 
           {!isAdmin && (
-            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            <div className="mt-4 sm:mt-6 rounded-xl border border-amber-200 bg-amber-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-amber-700">
               This section is only available for admin users.
             </div>
           )}
 
           {isAdmin && (
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-indigo-50 px-4 py-3">
+            <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-indigo-50 px-3 sm:px-4 py-2 sm:py-3">
               <div>
-                <p className="text-sm font-semibold text-indigo-700">Add employee</p>
+                <p className="text-xs sm:text-sm font-semibold text-indigo-700">Add employee</p>
                 <p className="text-xs text-indigo-500">Use the button to open the form.</p>
               </div>
               <button
                 type="button"
-                onClick={() => setShowForm((prev) => !prev)}
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-indigo-700"
+                onClick={() => {
+                  setShowForm((prev) => !prev);
+                  if (!prev) {
+                    handleReset();
+                  }
+                }}
+                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-md transition hover:bg-indigo-700"
               >
                 {showForm ? 'Hide Form' : 'Add Employee'}
               </button>
@@ -205,282 +669,179 @@ const EmployeeCreate = () => {
           )}
         </div>
 
-        {isAdmin && showForm && (
-          <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xl">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        {/* Create Form (Inline) */}
+        {isAdmin && showForm && !isEditing && (
+          <div className="rounded-2xl bg-white p-4 sm:p-6 lg:p-8 shadow-xl">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">{isEditing ? 'Edit Employee' : 'Create Employee'}</h2>
-                <p className="text-sm text-gray-500">
-                  {isEditing ? 'Update employee information and access.' : 'Add a new employee to the system.'}
-                </p>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Create Employee</h2>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">Add a new employee to the system.</p>
               </div>
             </div>
-
-            <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="employee_code">Employee Code</label>
-                  <input
-                    id="employee_code"
-                    name="employee_code"
-                    value={form.employee_code}
-                    onChange={handleChange}
-                    required
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                    placeholder="S01111"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="employee_name">Employee Name</label>
-                  <input
-                    id="employee_name"
-                    name="employee_name"
-                    value={form.employee_name}
-                    onChange={handleChange}
-                    required
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                    placeholder="Rupesh Sahu"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="email">Email</label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    required
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                    placeholder="rupesh@gmail.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="mobile_number">Mobile Number</label>
-                  <input
-                    id="mobile_number"
-                    name="mobile_number"
-                    value={form.mobile_number}
-                    onChange={handleChange}
-                    required
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                    placeholder="8103490174"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="department">Department</label>
-                  <input
-                    id="department"
-                    name="department"
-                    value={form.department}
-                    onChange={handleChange}
-                    required
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                    placeholder="IT"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="designation">Designation</label>
-                  <input
-                    id="designation"
-                    name="designation"
-                    value={form.designation}
-                    onChange={handleChange}
-                    required
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                    placeholder="Developer"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="role">Role</label>
-                  <select
-                    id="role"
-                    name="role"
-                    value={form.role}
-                    onChange={handleChange}
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="status">Status</label>
-                  <select
-                    id="status"
-                    name="status"
-                    value={form.status}
-                    onChange={handleChange}
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-gray-700" htmlFor="password">
-                    Password {isEditing ? '(leave blank to keep current)' : ''}
-                  </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    required={!isEditing}
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                    placeholder={isEditing ? 'Keep existing password' : 'Create a secure password'}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:border-gray-400"
-                >
-                  Reset
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {submitting ? 'Saving...' : isEditing ? 'Update Employee' : 'Create Employee'}
-                </button>
-              </div>
-            </form>
+            {renderForm()}
           </div>
         )}
 
+        {/* Edit Modal */}
+        {isAdmin && showEditModal && isEditing && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-screen items-center justify-center p-4">
+              {/* Backdrop */}
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+                onClick={handleCloseModal}
+              ></div>
+              
+              {/* Modal */}
+              <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-xl">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Edit Employee</h2>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">Update employee information and access.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="rounded-lg p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-4 sm:p-6 lg:p-8 max-h-[calc(100vh-200px)] overflow-y-auto">
+                  {renderForm()}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Employee List */}
         {isAdmin && (
           <div className="rounded-2xl bg-white p-4 sm:p-6 shadow-xl">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Employee List</h2>
-                <p className="text-sm text-gray-500">Manage all active employees from here.</p>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">Employee List</h2>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">Manage all active employees from here.</p>
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {/* Search Filters */}
+            <div className="mb-4 grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="text-xs font-medium text-gray-600" htmlFor="searchName">Search name</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1" htmlFor="searchName">Search name</label>
                 <input
                   id="searchName"
                   name="searchName"
                   value={searchName}
                   onChange={(event) => setSearchName(event.target.value)}
                   placeholder="Jane Doe"
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600" htmlFor="searchDepartment">Search department</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1" htmlFor="searchDepartment">Search department</label>
                 <input
                   id="searchDepartment"
                   name="searchDepartment"
                   value={searchDepartment}
                   onChange={(event) => setSearchDepartment(event.target.value)}
                   placeholder="IT, HR, Finance"
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
               </div>
             </div>
 
-            <div className="mt-4 overflow-hidden rounded-xl border border-gray-200">
+            {/* Table */}
+            <div className="overflow-hidden rounded-xl border border-gray-200">
               <div className="max-h-[60vh] overflow-auto">
-                <table className="min-w-[900px] w-full text-left text-sm">
-                  <thead className="sticky top-0 z-10 bg-gray-50 text-xs uppercase text-gray-500">
-                    <tr>
-                      <th className="px-4 py-3">Code</th>
-                      <th className="px-4 py-3">Name</th>
-                      <th className="px-4 py-3">Email</th>
-                      <th className="px-4 py-3">Mobile</th>
-                      <th className="px-4 py-3">Department</th>
-                      <th className="px-4 py-3">Designation</th>
-                      <th className="px-4 py-3">Role</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {tableLoading && (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="sticky top-0 z-10 bg-gray-50 text-xs uppercase text-gray-500">
                       <tr>
-                        <td colSpan="9" className="px-4 py-8 text-center text-sm text-gray-500">
-                          Loading employees...
-                        </td>
+                        <th className="px-3 sm:px-4 py-3">Code</th>
+                        <th className="px-3 sm:px-4 py-3">Name</th>
+                        <th className="hidden sm:table-cell px-4 py-3">Email</th>
+                        <th className="hidden md:table-cell px-4 py-3">Mobile</th>
+                        <th className="px-3 sm:px-4 py-3">Department</th>
+                        <th className="hidden lg:table-cell px-4 py-3">Designation</th>
+                        <th className="px-3 sm:px-4 py-3">Role</th>
+                        <th className="px-3 sm:px-4 py-3">Status</th>
+                        <th className="px-3 sm:px-4 py-3 text-right">Actions</th>
                       </tr>
-                    )}
-
-                    {!tableLoading && tableError && (
-                      <tr>
-                        <td colSpan="9" className="px-4 py-8 text-center text-sm text-red-500">
-                          {tableError}
-                        </td>
-                      </tr>
-                    )}
-
-                    {!tableLoading && !tableError && filteredEmployees.length === 0 && (
-                      <tr>
-                        <td colSpan="9" className="px-4 py-8 text-center text-sm text-gray-500">
-                          No employees found for the selected filters.
-                        </td>
-                      </tr>
-                    )}
-
-                    {!tableLoading && !tableError && filteredEmployees.map((employee) => {
-                      const employeeId = getEmployeeId(employee);
-                      return (
-                        <tr key={employeeId ?? employee?.employee_code} className="hover:bg-gray-50">
-                          <td className="px-4 py-3">{employee?.employee_code || '-'}</td>
-                          <td className="px-4 py-3">{employee?.employee_name || '-'}</td>
-                          <td className="px-4 py-3">{employee?.email || '-'}</td>
-                          <td className="px-4 py-3">{employee?.mobile_number || '-'}</td>
-                          <td className="px-4 py-3">{employee?.department || '-'}</td>
-                          <td className="px-4 py-3">{employee?.designation || '-'}</td>
-                          <td className="px-4 py-3">{employee?.role || '-'}</td>
-                          <td className="px-4 py-3">
-                            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${employee?.status === 'Active'
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : 'bg-gray-100 text-gray-600'
-                              }`}>
-                              {employee?.status || '-'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => handleEdit(employee)}
-                                className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50"
-                              >
-                                <Pencil size={14} />
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDelete(employee)}
-                                className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-                              >
-                                <Trash2 size={14} />
-                                Delete
-                              </button>
-                            </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {tableLoading && (
+                        <tr>
+                          <td colSpan="9" className="px-4 py-8 text-center text-sm text-gray-500">
+                            Loading employees...
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      )}
+
+                      {!tableLoading && tableError && (
+                        <tr>
+                          <td colSpan="9" className="px-4 py-8 text-center text-sm text-red-500">
+                            {tableError}
+                          </td>
+                        </tr>
+                      )}
+
+                      {!tableLoading && !tableError && filteredEmployees.length === 0 && (
+                        <tr>
+                          <td colSpan="9" className="px-4 py-8 text-center text-sm text-gray-500">
+                            No employees found for the selected filters.
+                          </td>
+                        </tr>
+                      )}
+
+                      {!tableLoading && !tableError && filteredEmployees.map((employee) => {
+                        const employeeId = getEmployeeId(employee);
+                        return (
+                          <tr key={employeeId ?? employee?.employee_code} className="hover:bg-gray-50">
+                            <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.employee_code || '-'}</td>
+                            <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium">{employee?.employee_name || '-'}</td>
+                            <td className="hidden sm:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.email || '-'}</td>
+                            <td className="hidden md:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.mobile_number || '-'}</td>
+                            <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.department || '-'}</td>
+                            <td className="hidden lg:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.designation || '-'}</td>
+                            <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.role || '-'}</td>
+                            <td className="px-3 sm:px-4 py-3">
+                              <span className={`rounded-full px-2 py-1 text-xs font-semibold ${employee?.status === 'Active'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                {employee?.status || '-'}
+                              </span>
+                            </td>
+                            <td className="px-3 sm:px-4 py-3 text-right">
+                              <div className="flex justify-end gap-1 sm:gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEdit(employee)}
+                                  className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 px-2 sm:px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50"
+                                >
+                                  <Pencil size={12} className="sm:w-[14px] sm:h-[14px]" />
+                                  <span className="hidden sm:inline">Edit</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(employee)}
+                                  className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2 sm:px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 size={12} className="sm:w-[14px] sm:h-[14px]" />
+                                  <span className="hidden sm:inline">Delete</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>

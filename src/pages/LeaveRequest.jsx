@@ -267,127 +267,131 @@ const handleSubmit = async (e) => {
   ];
 
   return (
-    <div className="space-y-6 page-content p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Leave Request</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-        >
-          <Plus size={16} className="mr-2" />
-          New Leave Request
-        </button>
-      </div>
+    <div className="min-h-screen bg-slate-50 py-8">
+      <div className="flex w-full flex-col gap-6 px-4 sm:px-6 lg:px-10">
+        <div className="space-y-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">Leave Request</h1>
+            <button
+              onClick={() => setShowModal(true)}
+              className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              <Plus size={16} className="mr-2" />
+              New Leave Request
+            </button>
+          </div>
 
-      {/* Month Filter */}
-      <div className="bg-white rounded-lg shadow border p-4">
-        <div className="flex items-center">
-          <Filter size={18} className="text-gray-500 mr-2" />
-          <label
-            htmlFor="monthFilter"
-            className="text-sm font-medium text-gray-700 mr-3"
-          >
-            Filter by Month:
-          </label>
-          <select
-            id="monthFilter"
-            value={selectedMonth}
-            onChange={handleMonthChange}
-            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {monthOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Leave Requests Table */}
-      <div className="bg-white rounded-lg shadow border overflow-hidden">
-        <div className="p-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">
-            My Leave Requests
-          </h2>
-          {tableLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          {/* Month Filter */}
+          <div className="rounded-2xl border border-white/60 bg-white p-4 shadow-xl shadow-slate-900/5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Filter size={18} className="text-gray-500" />
+              <label
+                htmlFor="monthFilter"
+                className="text-sm font-medium text-gray-700"
+              >
+                Filter by Month:
+              </label>
+              <select
+                id="monthFilter"
+                value={selectedMonth}
+                onChange={handleMonthChange}
+                className="w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                {monthOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      From Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      To Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Days
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Reason
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Applied Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {leavesData
-                    .filter(
-                      (leave) =>
-                        selectedMonth === "all" ||
-                        isDateInMonth(leave.startDateRaw || leave.startDate, selectedMonth) ||
-                        isDateInMonth(leave.endDateRaw || leave.endDate, selectedMonth)
-                    )
-                    .map((request) => (
-                      <tr key={request.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {request.startDate}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {request.endDate}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {request.days}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                          {request.reason}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              (request.status || "").toLowerCase() === "approved"
-                                ? "bg-green-100 text-green-800"
-                                : (request.status || "").toLowerCase() === "rejected"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
-                          >
-                            {request.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {request.appliedDate}
-                        </td>
+          </div>
+
+          {/* Leave Requests Table */}
+          <div className="rounded-2xl border border-white/60 bg-white shadow-xl shadow-slate-900/5">
+            <div className="p-6">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">
+                My Leave Requests
+              </h2>
+              {tableLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          From Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          To Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Days
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Reason
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Applied Date
+                        </th>
                       </tr>
-                    ))}
-                </tbody>
-              </table>
-              {leavesData.length === 0 && (
-                <div className="px-6 py-12 text-center">
-                  <p className="text-gray-500">No leave requests found.</p>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {leavesData
+                        .filter(
+                          (leave) =>
+                            selectedMonth === "all" ||
+                            isDateInMonth(leave.startDateRaw || leave.startDate, selectedMonth) ||
+                            isDateInMonth(leave.endDateRaw || leave.endDate, selectedMonth)
+                        )
+                        .map((request) => (
+                          <tr key={request.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {request.startDate}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {request.endDate}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {request.days}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                              {request.reason}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${
+                                  (request.status || "").toLowerCase() === "approved"
+                                    ? "bg-green-100 text-green-800"
+                                    : (request.status || "").toLowerCase() === "rejected"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                                }`}
+                              >
+                                {request.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {request.appliedDate}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                  {leavesData.length === 0 && (
+                    <div className="px-6 py-12 text-center">
+                      <p className="text-gray-500">No leave requests found.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 

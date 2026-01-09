@@ -181,13 +181,13 @@ const PlantVisitorList= () => {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Plant Visitor Requests</h1>
             
             </div>
-            <button
+            {/* <button
               type="button"
               onClick={handleOpenForm}
               className="inline-flex items-center justify-center rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
             >
               Open Visitor Form
-            </button>   
+            </button>    */}
           </div>
         </div>
 

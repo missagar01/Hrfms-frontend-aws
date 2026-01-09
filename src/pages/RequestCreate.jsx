@@ -140,7 +140,6 @@ const RequestCreate = () => {
                 name="employee_code"
                 value={employeeCodeValue}
                 onChange={handleChange}
-                readOnly
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 placeholder="S00001"
                 required
@@ -244,56 +243,6 @@ const RequestCreate = () => {
                 ))}
               </select>
             </div>
-
-            {/* <div>
-              <label className="text-sm font-medium text-gray-700" htmlFor="request_for">Request For</label>
-              <input
-                id="request_for"
-                name="request_for"
-                value={form.request_for}
-                onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                placeholder="Laptop"
-              />
-            </div> */}
-{/* 
-            <div>
-              <label className="text-sm font-medium text-gray-700" htmlFor="request_quantity">Request Quantity</label>
-              <input
-                id="request_quantity"
-                name="request_quantity"
-                type="number"
-                min="1"
-                value={form.request_quantity}
-                onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700" htmlFor="experience">Experience</label>
-              <input
-                id="experience"
-                name="experience"
-                value={form.experience}
-                onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                placeholder="5 years"
-              />
-            </div> */}
-{/* 
-            <div>
-              <label className="text-sm font-medium text-gray-700" htmlFor="education">Education</label>
-              <input
-                id="education"
-                name="education"
-                value={form.education}
-                onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                placeholder="B.Tech"
-              />
-            </div> */}
-
             <div className="md:col-span-2 lg:col-span-3">
               <label className="text-sm font-medium text-gray-700" htmlFor="remarks">Remarks</label>
               <textarea

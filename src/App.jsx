@@ -10,14 +10,9 @@ import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
-import Leaving from "./pages/Leaving";
-import Employee from "./pages/Employee";
 import MyProfile from "./pages/MyProfile";
-import MyAttendance from "./pages/MyAttendance";
 import LeaveRequest from "./pages/LeaveRequest";
-import CompanyCalendar from "./pages/CompanyCalendar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import LeaveManagement from "./pages/LeaveManagement";
 import LeaveManagerApproval from "./pages/LeaveManagerApproval";
 import LeaveHrApproval from "./pages/LeaveHrApproval";
 import EmployeeCreate from "./pages/EmployeeCreate";
@@ -68,8 +63,6 @@ function App() {
             }
           >
             <Route index element={<RoleBasedHome />} />
-            <Route path="leaving" element={<Leaving />} />
-            <Route path="employee" element={<Employee />} />
             <Route path="resume-request" element={<ResumeRequest />} />
             <Route path="resume-list" element={<ResumeList />} />
             <Route path="employee-create" element={<EmployeeCreate />} />
@@ -80,10 +73,7 @@ function App() {
             <Route path="travel-status" element={<TravelStatus />} />
             <Route path="resumes" element={<ResumeCreate />} />
             <Route path="my-profile" element={<MyProfile />} />
-            <Route path="my-attendance" element={<MyAttendance />} />
             <Route path="leave-request" element={<LeaveRequest />} />
-            <Route path="company-calendar" element={<CompanyCalendar />} />
-            <Route path="leave-management" element={<LeaveManagement />} />
             <Route path="leave-approvals" element={<LeaveManagerApproval />} />
             <Route path="leave-hr-approvals" element={<LeaveHrApproval />} />
             <Route path="resume" element={<ResumeCreate />} />

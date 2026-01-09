@@ -14,15 +14,24 @@ const TravelStatus = () => {
   const [previewIsPdf, setPreviewIsPdf] = useState(false);
 
   const employeeCode = user?.employee_code || '';
-  const allowedEmployeeCodes = ['S09191', 'S03835'];
-  const isAllowed = allowedEmployeeCodes.includes(employeeCode);
+  const filteredTickets = useMemo(
+    () => tickets.filter((item) => item?.booked_employee_code === employeeCode),
+    [tickets, employeeCode]
+  );
 
-  const filteredTickets = useMemo(() => {
-    return tickets.filter((item) => item?.booked_employee_code === employeeCode);
-  }, [tickets, employeeCode]);
+  const ticketStats = useMemo(() => {
+    const total = filteredTickets.length;
+    const booked = filteredTickets.filter(
+      (ticket) => String(ticket.status || '').toLowerCase() === 'booked'
+    ).length;
+    const cancelled = filteredTickets.filter(
+      (ticket) => String(ticket.status || '').toLowerCase() === 'cancel'
+    ).length;
+    return { total, booked, cancelled };
+  }, [filteredTickets]);
 
   useEffect(() => {
-    if (!token || !isAllowed) {
+    if (!token) {
       return;
     }
 
@@ -40,7 +49,7 @@ const TravelStatus = () => {
     };
 
     loadTickets();
-  }, [token, isAllowed]);
+  }, [token]);
 
   useEffect(() => {
     return () => {
@@ -85,32 +94,48 @@ const TravelStatus = () => {
   };
 
   return (
-    <div className="min-h-screen py-6 sm:py-10">
-      <div>
-        {!isAllowed && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-4 text-sm text-amber-700">
-            This page is available only for employee codes S09191 and S03835.
-          </div>
-        )}
-
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 p-6 sm:p-8 shadow-xl mb-2">
+    <div className="min-h-screen bg-slate-50 py-8">
+      <div className="space-y-6 px-4 pb-10 sm:px-6 lg:px-10">
+        <div className="rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 p-6 sm:p-8 shadow-2xl mb-5 ring-1 ring-white/30">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-widest text-white">Tickets</p>
               <h1 className="text-2xl sm:text-3xl font-bold text-white">Travel Status</h1>
-              <p className="mt-1 text-sm text-white">Track tickets booked by your employee code.</p>
+              <p className="mt-1 text-sm text-indigo-100">
+                Track tickets booked by your employee code and review the latest bills.
+              </p>
             </div>
-            <div className="flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-indigo-700">
-              <Ticket size={18} />
-              <span className="text-sm font-semibold">HR FMS</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-white">
+                <Ticket size={18} />
+                <span className="text-sm font-semibold">HR FMS</span>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs text-indigo-100 uppercase tracking-wider">
+                <span className="font-semibold text-white">Employee Code:</span>
+                <span>{employeeCode || '–'}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {isAllowed && (
-          <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xl">
-            <div className="w-full overflow-x-auto">
-              <table className="w-full min-w-[1000px] divide-y divide-gray-200 text-sm">
+        <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xl">
+          <div className="mb-6 grid gap-3 md:grid-cols-3">
+            {[
+              { label: 'Total tickets', value: ticketStats.total, accent: 'bg-indigo-50 text-indigo-700' },
+              { label: 'Booked', value: ticketStats.booked, accent: 'bg-emerald-50 text-emerald-700' },
+              { label: 'Cancelled', value: ticketStats.cancelled, accent: 'bg-rose-50 text-rose-700' },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className={`flex flex-col rounded-2xl border border-gray-100 p-4 shadow-sm ${stat.accent}`}
+              >
+                <span className="text-xs font-semibold uppercase tracking-widest">{stat.label}</span>
+                <span className="mt-2 text-2xl font-bold">{stat.value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[1000px] divide-y divide-gray-200 text-sm">
                 <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>

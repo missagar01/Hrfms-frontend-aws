@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Ticket, UploadCloud } from 'lucide-react';
+import { Ticket, UploadCloud, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { createTicket } from '../api/ticketApi';
@@ -26,8 +26,7 @@ const TicketCreate = () => {
   const navigate = useNavigate();
   const defaultEmployeeCode = user?.employee_code || '';
   const defaultPersonName = user?.employee_name || '';
-  const allowedEmployeeCodes = ['S09191', 'S03835'];
-  const isAllowed = allowedEmployeeCodes.includes(defaultEmployeeCode);
+  const isAllowed = true;
 
   const [form, setForm] = useState(() => ({
     ...initialForm,
@@ -73,6 +72,19 @@ const TicketCreate = () => {
     setForm((prev) => ({ ...prev, upload_bill_image: file }));
   };
 
+  const handleCreateTicket = () => {
+    setSelectedRequestId('');
+    setSelectedRequest(null);
+    setForm({
+      ...initialForm,
+      request_employee_code: defaultEmployeeCode,
+      person_name: defaultPersonName,
+      booked_name: defaultPersonName,
+      booked_employee_code: defaultEmployeeCode,
+    });
+    setShowModal(true);
+  };
+
   const handleBookTicket = (request) => {
     if (!request) {
       return;
@@ -90,10 +102,6 @@ const TicketCreate = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!isAllowed) {
-      toast.error('You are not allowed to create tickets.');
-      return;
-    }
     if (!token) {
       toast.error('Please login again to submit ticket.');
       return;
@@ -185,36 +193,46 @@ const TicketCreate = () => {
   }, [token]);
 
   useEffect(() => {
-    if (!isAllowed && defaultEmployeeCode) {
-      toast.error('Tickets are available only for S09191 and S03835.');
+    if (!defaultEmployeeCode) {
       navigate('/', { replace: true });
     }
-  }, [isAllowed, defaultEmployeeCode, navigate]);
+  }, [defaultEmployeeCode, navigate]);
 
   return (
-    <div className="min-h-screen py-6 sm:py-10">
-      <div>
-        {!isAllowed && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-4 text-sm text-amber-700">
-            This page is available only for employee codes S09191 and S03835.
-          </div>
-        )}
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 p-6 sm:p-8 shadow-xl mb-2">
+    <div className="min-h-screen bg-slate-50 py-8">
+       <div className="space-y-6 px-4 pb-10 sm:px-6 lg:px-10">
+        <div className="rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 p-6 sm:p-8 shadow-2xl mb-5 ring-1 ring-white/30">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-white">Tickets</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Tickets</p>
               <h1 className="text-2xl sm:text-3xl font-bold text-white">Create Ticket Bill</h1>
-              <p className="mt-1 text-sm text-white">Upload bill details and booking information.</p>
+              <p className="mt-1 text-sm text-indigo-100">Upload bill details and booking information.</p>
             </div>
-            <div className="flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-indigo-700">
-              <Ticket size={18} />
-              <span className="text-sm font-semibold">HR FMS</span>
+            <div className="flex items-center gap-3">
+              
+              <div className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-white">
+                <Ticket size={18} />
+                <span className="text-sm font-semibold">HR FMS</span>
+              </div>
             </div>
           </div>
         </div>
 
-       <div className="sticky top-20 z-30 rounded-2xl bg-white p-6 sm:p-8 shadow-xl">
-
+        <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xl">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Travel Requests</h2>
+              <p className="text-sm text-gray-500">Select a request to book a ticket or create a new ticket directly.</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleCreateTicket}
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-indigo-700 hover:shadow-lg"
+            >
+              <Plus size={18} />
+              <span>Create Ticket</span>
+            </button>
+          </div>
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[900px] divide-y divide-gray-200 text-sm">
               <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
@@ -247,12 +265,11 @@ const TicketCreate = () => {
                 {!loadingRequests && requests.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleBookTicket(item)}
-                        className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
-                        disabled={!isAllowed}
-                      >
+                    <button
+                      type="button"
+                      onClick={() => handleBookTicket(item)}
+                      className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                    >
                         Book Ticket
                       </button>
                     </td>
@@ -276,8 +293,12 @@ const TicketCreate = () => {
               <div className="flex max-h-full w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
                 <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Book Ticket</h2>
-                    <p className="text-sm text-gray-500">{selectedRequest?.request_no || 'Selected request'}</p>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {selectedRequestId ? 'Book Ticket' : 'Create Ticket'}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {selectedRequest?.request_no || 'Create a new ticket bill'}
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -449,7 +470,7 @@ const TicketCreate = () => {
                       </button>
                       <button
                         type="submit"
-                        disabled={submitting || !isAllowed}
+                        disabled={submitting}
                         className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
                       >
                         {submitting ? 'Submitting...' : 'Submit Ticket'}

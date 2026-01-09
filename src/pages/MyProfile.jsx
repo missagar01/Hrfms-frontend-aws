@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building, Edit3, Mail, Phone, Save, User, X } from 'lucide-react';
+import { Building, Edit3, Mail, Phone, Save, User, X, Hash, Shield, Briefcase, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getEmployeeById, updateEmployee } from '../api/employeeApi';
 import { useAuth } from '../context/AuthContext';
@@ -84,138 +84,235 @@ const MyProfile = () => {
   };
 
   if (loading) {
-    return <div className="page-content p-6"><div className="flex justify-center flex-col items-center">
-      <div className="w-6 h-6 border-4 border-indigo-500 border-dashed rounded-full animate-spin mb-2"></div>
-      <span className="text-gray-600 text-sm">Loading pending calls...</span>
-    </div></div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-lg font-semibold text-gray-700">Loading profile data...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!profileData) {
-    return <div className="page-content p-6">No profile data available</div>;
-  }
-
-  return (
-    <div className="space-y-6 page-content p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">My Profile</h1>
-        <div className="flex space-x-2">
-          {!isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              <Edit3 size={16} className="mr-2" />
-              Edit Profile
-            </button>
-          ) : (
-            <div className="flex space-x-2">
-              <button
-                onClick={handleSave}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                <Save size={16} className="mr-2" />
-                Save
-              </button>
-              <button
-                onClick={handleCancel}
-                className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-              >
-                <X size={16} className="mr-2" />
-                Cancel
-              </button>
-            </div>
-          )}
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 max-w-md">
+            <p className="text-red-700 font-medium">No profile data available</p>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Picture & Basic Info */}
-        <div className="bg-white rounded-xl shadow-lg border p-6">
-          <div className="text-center">
-            <div className="w-32 h-32 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User size={48} className="text-indigo-400" />
+  const isAdmin = (profileData?.role || '').toLowerCase() === 'admin' || profileData?.Admin === 'Yes';
+  const statusColor = profileData?.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600';
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4 sm:p-6 lg:p-8">
+      <div className="w-full space-y-4 sm:space-y-6">
+        {/* Header Section - Responsive */}
+        <div className="rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 p-4 sm:p-6 lg:p-8 shadow-2xl border border-white/20">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-white/80 mb-1 sm:mb-2">Profile</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white">My Profile</h1>
+              <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-indigo-100">View and manage your personal information</p>
             </div>
-            <h2 className="text-xl font-bold text-gray-800">{profileData.employee_name}</h2>
-            <p className="text-gray-600">{profileData.designation || '-'}</p>
-            <p className="text-sm text-gray-500">{profileData.employee_code}</p>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-indigo-600 shadow-lg transition hover:bg-indigo-50 hover:shadow-xl"
+                >
+                  <Edit3 size={18} />
+                  <span>Edit Profile</span>
+                </button>
+              ) : (
+                <div className="flex gap-2 sm:gap-3">
+                  <button
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-700 hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    <Save size={18} />
+                    <span className="hidden sm:inline">Save Changes</span>
+                    <span className="sm:hidden">Save</span>
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/20 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-white/30"
+                  >
+                    <X size={18} />
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Personal Information */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-lg border p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-6">Personal Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Mail size={16} className="inline mr-2" />
-                Email Address
-              </label>
-              {isEditing ? (
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email || ''}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              ) : (
-                <p className="text-gray-800">{profileData.email || '-'}</p>
-              )}
+        {/* Main Content Grid - Fully Responsive */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Profile Card - Left Side */}
+          <div className="lg:col-span-1">
+            <div className="rounded-2xl bg-white p-4 sm:p-6 lg:p-8 shadow-xl border border-gray-100">
+              <div className="text-center">
+                <div className="mx-auto flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg mb-4 sm:mb-6">
+                  <User size={48} className="text-white sm:w-16 sm:h-16" />
+                </div>
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2">{profileData.employee_name || '-'}</h2>
+                <p className="text-sm sm:text-base text-gray-600 mb-3">{profileData.designation || 'Not specified'}</p>
+                <div className="inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 sm:px-4 py-1.5 sm:py-2 mb-4">
+                  <Hash size={14} className="text-indigo-600 sm:w-4 sm:h-4" />
+                  <span className="text-xs sm:text-sm font-semibold text-indigo-700">{profileData.employee_code || '-'}</span>
+                </div>
+                <div className="mt-4 sm:mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusColor}`}>
+                      {isAdmin && <Shield size={12} className="mr-1" />}
+                      {profileData?.status || 'Active'}
+                    </span>
+                  </div>
+                  {isAdmin && (
+                    <p className="text-xs text-gray-500">Administrator Access</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Information Cards - Right Side */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Personal Information Card */}
+            <div className="rounded-2xl bg-white p-4 sm:p-6 lg:p-8 shadow-xl border border-gray-100">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                <div className="p-2 rounded-lg bg-indigo-100">
+                  <User size={18} className="text-indigo-600 sm:w-5 sm:h-5" />
+                </div>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900">Personal Information</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700">
+                    <Mail size={14} className="text-indigo-600 sm:w-4 sm:h-4" />
+                    Email Address
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email || ''}
+                      onChange={handleInputChange}
+                      className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition"
+                      placeholder="your.email@example.com"
+                    />
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-800 font-medium break-words">{profileData.email || '-'}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700">
+                    <Phone size={14} className="text-indigo-600 sm:w-4 sm:h-4" />
+                    Phone Number
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      name="mobile_number"
+                      value={formData.mobile_number || ''}
+                      onChange={handleInputChange}
+                      className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition"
+                      placeholder="+91 1234567890"
+                    />
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.mobile_number || '-'}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700">
+                    <Building size={14} className="text-indigo-600 sm:w-4 sm:h-4" />
+                    Department
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="department"
+                      value={formData.department || ''}
+                      readOnly
+                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-600 cursor-not-allowed"
+                    />
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.department || '-'}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700">
+                    <Briefcase size={14} className="text-indigo-600 sm:w-4 sm:h-4" />
+                    Designation
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="designation"
+                      value={formData.designation || ''}
+                      readOnly
+                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-600 cursor-not-allowed"
+                    />
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.designation || '-'}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Phone size={16} className="inline mr-2" />
-                Phone Number
-              </label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  name="mobile_number"
-                  value={formData.mobile_number || ''}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              ) : (
-                <p className="text-gray-800">{profileData.mobile_number || '-'}</p>
-              )}
-            </div>
+            {/* Additional Information Card */}
+            <div className="rounded-2xl bg-white p-4 sm:p-6 lg:p-8 shadow-xl border border-gray-100">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                <div className="p-2 rounded-lg bg-purple-100">
+                  <Briefcase size={18} className="text-purple-600 sm:w-5 sm:h-5" />
+                </div>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900">Additional Details</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700">
+                    <Hash size={14} className="text-purple-600 sm:w-4 sm:h-4" />
+                    Employee Code
+                  </label>
+                  <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.employee_code || '-'}</p>
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Building size={16} className="inline mr-2" />
-                Department
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="department"
-                  value={formData.department || ''}
-                   readOnly
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              ) : (
-                <p className="text-gray-800">{profileData.department || '-'}</p>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700">
+                    <Shield size={14} className="text-purple-600 sm:w-4 sm:h-4" />
+                    Role
+                  </label>
+                  <p className="text-sm sm:text-base text-gray-800 font-medium capitalize">{profileData.role || 'Employee'}</p>
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Designation
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="designation"
-                  value={formData.designation || ''}
-                   readOnly
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              ) : (
-                <p className="text-gray-800">{profileData.designation || '-'}</p>
-              )}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700">
+                    <CheckCircle2 size={14} className="text-purple-600 sm:w-4 sm:h-4" />
+                    Status
+                  </label>
+                  <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusColor}`}>
+                    {profileData?.status || 'Active'}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700">
+                    <Building size={14} className="text-purple-600 sm:w-4 sm:h-4" />
+                    Department
+                  </label>
+                  <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.department || 'Not assigned'}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

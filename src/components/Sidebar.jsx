@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -31,97 +31,126 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ onClose }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, pageAccess } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [attendanceOpen, setAttendanceOpen] = useState(false);
 
   const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
 
+  // Normalize page_access to array format
+  const normalizePageAccess = (pageAccess) => {
+    if (!pageAccess) return [];
+    
+    // If it's already an array, return it
+    if (Array.isArray(pageAccess)) {
+      return pageAccess.map(route => route.trim());
+    }
+    
+    // If it's a string, try to parse as JSON first
+    if (typeof pageAccess === 'string') {
+      try {
+        const parsed = JSON.parse(pageAccess);
+        if (Array.isArray(parsed)) {
+          return parsed.map(route => route.trim());
+        }
+      } catch {
+        // If JSON parsing fails, treat as comma-separated string
+        return pageAccess.split(',').map(route => route.trim()).filter(Boolean);
+      }
+    }
+    
+    return [];
+  };
+
+  // Check if a route is allowed for employee
+  const isRouteAllowed = (route) => {
+    if (isAdmin) return true; // Admin can access all routes
+    
+    const allowedRoutes = normalizePageAccess(pageAccess);
+    if (allowedRoutes.length === 0) return false; // No page_access means no access
+    
+    // Normalize the route to check (ensure it starts with /)
+    const normalizedRoute = route.startsWith('/') ? route : `/${route}`;
+    
+    // Check if route matches any allowed route (exact match)
+    return allowedRoutes.some(allowedRoute => {
+      // Normalize allowed route (ensure it starts with /)
+      const normalizedAllowed = allowedRoute.startsWith('/') ? allowedRoute : `/${allowedRoute}`;
+      
+      // Exact match
+      return normalizedRoute === normalizedAllowed;
+    });
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
-
   };
 
-  const adminMenuItemsBase = [
+  // Define menu items - moved to top to avoid hoisting issues
+  const adminMenuItems = useMemo(() => [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/employee-create', icon: UserPlus, label: 'Employee' },
     { path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' },
     { path: '/resume-list', icon: BadgeDollarSign, label: 'MainPower List' },
-  ];
+  ], []);
 
-  const allowedTicketCodes = ['S09191', 'S03835'];
-  const canSeeTickets = allowedTicketCodes.includes(user?.employee_code || '');
-  const resumeCreatorCodes = ['S09191'];
-  const canCreateResume = resumeCreatorCodes.includes(user?.employee_code || '');
-  const approverEmployeeCodes = [
-    'S00002',
-    'S00016',
-    'S00019',
-    'S00037',
-    'S00045',
-    'S00116',
-    'S00143',
-    'S00151',
-    'S00510',
-    'S00658',
-    'S04057',
-    'S04631',
-    'S05777',
-    'S08132',
-    'S08392',
-    'S08495',
-    'S08547',
-    'S09505',
-  ];
-  const canApproveLeaves = approverEmployeeCodes.includes(user?.employee_code || '');
-  const hrEmployeeCodes = ['S08046', 'S09103'];
-  const canApproveHrLeaves = hrEmployeeCodes.includes(user?.employee_code || '');
-  const plantVisitorListCodes = ['S00002', 'S00116'];
-  const canViewPlantVisitorList = plantVisitorListCodes.includes(user?.employee_code || '');
-  const adminMenuItems = canApproveHrLeaves
-    ? [...adminMenuItemsBase, { path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }]
-    : adminMenuItemsBase;
-
-  const employeeMenuItems = [
-    // { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  const employeeMenuItems = useMemo(() => [
+    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' },
-    // { path: '/my-attendance', icon: Clock, label: 'My Attendance' },
     { path: '/resume-request', icon: BadgeDollarSign, label: 'MainPower Request' },
     { path: '/requests', icon: NotebookPen, label: 'Travel Form' },
-    ...(canCreateResume ? [{ path: '/resume-create', icon: FileText, label: 'Resume' }] : []),
-    ...(canSeeTickets
-      ? [
-          { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
-          { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
-        ]
-      : []),
+    { path: '/resumes', icon: FileText, label: 'Resume' },
+    { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
+    { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
     { path: '/leave-request', icon: LeaveIcon, label: 'Leave Request' },
-     { path: '/plant-visitor', icon: LeaveIcon, label: 'Plant Visitor' },
-    ...(canViewPlantVisitorList
-      ? [{ path: '/plant-visitorlist', icon: LeaveIcon, label: 'Plant Visitor List' }]
-      : []),
-      
-    ...(canApproveLeaves ? [{ path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' }] : []),
-    ...(canApproveHrLeaves ? [{ path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }] : []),
-    // { path: '/my-salary', icon: DollarSign, label: 'My Salary' },
-    // { path: '/company-calendar', icon: Calendar, label: 'Company Calendar' },
-  ];
+    { path: '/plant-visitor', icon: LeaveIcon, label: 'Plant Visitor' },
+    { path: '/plant-visitorlist', icon: LeaveIcon, label: 'Plant Visitor List' },
+    { path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' },
+  ], []);
 
-  const menuItems = isAdmin
-    ? adminMenuItems
-    : (canSeeTickets
-      ? [
-          { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
-          { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
-            { path: '/resume', icon: BadgeDollarSign, label: 'MainPower Request' },
-            { path: '/resume-list', icon: BadgeDollarSign, label: 'Resume List' },
-             { path: '/condidate-list', icon: BadgeDollarSign, label: 'Interviwer List' },
-              { path: '/condidate-select', icon: BadgeDollarSign, label: 'Selected Condidate' },
-               { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' },
-        ]
-      : employeeMenuItems);
+  const hrEmployeeCodes = ['S08046', 'S09103'];
+  const canApproveHrLeaves = hrEmployeeCodes.includes(user?.employee_code || '');
+  
+  // Add HR Approvals to admin menu if user can approve HR leaves
+  const finalAdminMenuItems = useMemo(() => {
+    if (canApproveHrLeaves) {
+      return [...adminMenuItems, { path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }];
+    }
+    return adminMenuItems;
+  }, [adminMenuItems, canApproveHrLeaves]);
+
+  // Filter menu items based on role and page_access
+  const menuItems = useMemo(() => {
+    if (isAdmin) {
+      // Admin sees all admin and employee menu items (remove duplicates by path)
+      const allItems = [...finalAdminMenuItems, ...employeeMenuItems];
+      const uniqueItems = [];
+      const seenPaths = new Set();
+      
+      for (const item of allItems) {
+        if (!seenPaths.has(item.path)) {
+          seenPaths.add(item.path);
+          uniqueItems.push(item);
+        }
+      }
+      
+      return uniqueItems;
+    }
+
+    // For employees, filter by page_access
+    const allowedRoutes = normalizePageAccess(pageAccess);
+    if (allowedRoutes.length === 0) return [];
+    
+    return employeeMenuItems.filter(item => {
+      const normalizedRoute = item.path.startsWith('/') ? item.path : `/${item.path}`;
+      return allowedRoutes.some(allowedRoute => {
+        const normalizedAllowed = allowedRoute.startsWith('/') ? allowedRoute : `/${allowedRoute}`;
+        return normalizedRoute === normalizedAllowed;
+      });
+    });
+  }, [isAdmin, finalAdminMenuItems, employeeMenuItems, pageAccess]);
 
   const SidebarContent = ({ onClose, isCollapsed = false }) => (
     <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-indigo-900 text-white`}>
