@@ -4,27 +4,6 @@ import toast from 'react-hot-toast';
 import { getLeaveRequests, updateLeaveRequest } from '../api/leaveRequestApi';
 import { useAuth } from '../context/AuthContext';
 
-const approverEmployeeCodes = new Set([
-  'S00002',
-  'S00016',
-  'S00019',
-  'S00037',
-  'S00045',
-  'S00116',
-  'S00143',
-  'S00151',
-  'S00510',
-  'S00658',
-  'S04057',
-  'S04631',
-  'S05777',
-  'S08132',
-  'S08392',
-  'S08495',
-  'S08547',
-  'S09505',
-]);
-
 const approverDepartmentOverrides = {
   S00002: [
     'CRUSHER',
@@ -122,7 +101,7 @@ const LeaveManagerApproval = () => {
     return approverDepartment ? [approverDepartment] : [];
   }, [approverDepartment, approverCode]);
 
-  const canApprove = approverEmployeeCodes.has(approverCode);
+  const canApprove = true;
 
   const fetchData = useCallback(async () => {
     if (!token) {
@@ -142,6 +121,14 @@ const LeaveManagerApproval = () => {
       const filtered = data.filter((item) => {
         const itemDept = normalizeValue(item.department);
         if (!itemDept || normalizedDepartments.size === 0) {
+          return false;
+        }
+        const approvalStatus = normalizeValue(item.approved_by_status);
+        if (approvalStatus === 'approved') {
+          return false;
+        }
+        const hrApprovalStatus = normalizeValue(item.hr_approval);
+        if (hrApprovalStatus === 'approved') {
           return false;
         }
         // Exact match only - no partial matching
@@ -174,11 +161,6 @@ const LeaveManagerApproval = () => {
       toast.error('Please login again to approve.');
       return;
     }
-    if (!canApprove) {
-      toast.error('You are not allowed to approve requests.');
-      return;
-    }
-
     try {
       const selectedStatus = actionSelections[requestId] || 'Approved';
       const approvalLabel = selectedStatus === 'Rejected' ? 'Rejected' : 'Approved';
@@ -207,11 +189,6 @@ const LeaveManagerApproval = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Approve Leave Requests</h1>
             <p className="mt-1 text-sm text-gray-500">Approve pending leave requests for your department.</p>
           </div>
-          {!canApprove && (
-            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              You do not have access to approve leave requests.
-            </div>
-          )}
         </div>
 
         <div className="rounded-2xl bg-white p-4 sm:p-6 shadow-xl">
@@ -278,7 +255,7 @@ const LeaveManagerApproval = () => {
                               }))
                             }
                             className="w-full sm:w-auto rounded-lg border border-gray-300 px-2 py-1.5 text-xs text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            disabled={!canApprove || isFinalized}
+                            disabled={isFinalized}
                           >
                             <option value="Approved">Approve</option>
                             <option value="Rejected">Reject</option>
@@ -286,7 +263,7 @@ const LeaveManagerApproval = () => {
                           <button
                             type="button"
                             onClick={() => handleApprove(item.id)}
-                            disabled={!canApprove || isFinalized}
+                            disabled={isFinalized}
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             <CheckCircle size={14} />

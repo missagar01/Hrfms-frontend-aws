@@ -56,7 +56,13 @@ const Sidebar = ({ onClose }) => {
         }
       } catch {
         // If JSON parsing fails, treat as comma-separated string
-        return pageAccess.split(',').map(route => route.trim()).filter(Boolean);
+        const cleaned = pageAccess
+          .replace(/^\s*\[|\]\s*$/g, '')
+          .replace(/^['"]|['"]$/g, '');
+        return cleaned
+          .split(',')
+          .map(route => route.trim().replace(/^['"]|['"]$/g, ''))
+          .filter(Boolean);
       }
     }
     
@@ -108,6 +114,7 @@ const Sidebar = ({ onClose }) => {
     { path: '/plant-visitor', icon: LeaveIcon, label: 'Plant Visitor' },
     { path: '/plant-visitorlist', icon: LeaveIcon, label: 'Plant Visitor List' },
     { path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' },
+    { path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' },
   ], []);
 
   const hrEmployeeCodes = ['S08046', 'S09103'];
