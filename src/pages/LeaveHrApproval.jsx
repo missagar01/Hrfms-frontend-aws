@@ -1,22 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getLeaveRequestsByStatus, updateLeaveRequest } from '../api/leaveRequestApi';
 import { useAuth } from '../context/AuthContext';
 
-const hrEmployeeCodes = new Set(['S08046', 'S09103']);
-
 const LeaveHrApproval = () => {
   const { token, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
-
-  const employeeCode = useMemo(
-    () => user?.employee_code || user?.employeeCode || '',
-    [user]
-  );
-
-  const canApprove = hrEmployeeCodes.has(employeeCode);
 
   const fetchData = useCallback(async () => {
     if (!token) {
@@ -28,7 +19,11 @@ const LeaveHrApproval = () => {
     try {
       const response = await getLeaveRequestsByStatus('Approved', token);
       const data = Array.isArray(response?.data) ? response.data : [];
-      setItems(data);
+      const filtered = data.filter((item) => {
+        const hrApproval = (item.hr_approval || '').toString().trim().toLowerCase();
+        return hrApproval !== 'approved';
+      });
+      setItems(filtered);
     } catch (error) {
       toast.error(error?.message || 'Failed to load leave approvals.');
     } finally {
@@ -45,16 +40,11 @@ const LeaveHrApproval = () => {
       toast.error('Please login again to approve.');
       return;
     }
-    if (!canApprove) {
-      toast.error('You are not allowed to approve requests.');
-      return;
-    }
-
     try {
       const payload = {
         hr_approval: 'Approved',
         request_status: 'Approved',
-        approval_hr: employeeCode || null,
+        approval_hr: user?.employee_code || user?.employeeCode || null,
       };
       const response = await updateLeaveRequest(requestId, payload, token);
       if (!response?.success) {
@@ -77,11 +67,6 @@ const LeaveHrApproval = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">HR Leave Approvals</h1>
             <p className="mt-1 text-sm text-gray-500">Review approved requests and confirm HR approval.</p>
           </div>
-          {!canApprove && (
-            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              You do not have access to this page.
-            </div>
-          )}
         </div>
 
         <div className="rounded-2xl bg-white p-4 sm:p-6 shadow-xl">
@@ -140,7 +125,7 @@ const LeaveHrApproval = () => {
                           <button
                             type="button"
                             onClick={() => handleApprove(item.id)}
-                            disabled={!canApprove || (item.hr_approval || '').toLowerCase() === 'approved'}
+                            disabled={(item.hr_approval || '').toLowerCase() === 'approved'}
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             <CheckCircle size={14} />
