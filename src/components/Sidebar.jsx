@@ -1,40 +1,26 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileText,
-  Globe,
-  Search,
-  Phone,
-  UserCheck,
-  UserX,
-  UserMinus,
-  AlarmClockCheck,
   Users,
-  Calendar,
-  DollarSign,
   FileText as LeaveIcon,
   User as ProfileIcon,
-  Clock,
   LogOut as LogOutIcon,
   X,
   User,
-  Menu,
   ChevronDown,
   ChevronUp,
   NotebookPen,
-  Book,
   BadgeDollarSign,
-  BookPlus,
   UserPlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const Sidebar = ({ onClose }) => {
+const Sidebar = ({ isOpen = false, onClose }) => {
   const { user, logout, pageAccess } = useAuth();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-  const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const closeSidebar = () => onClose?.();
 
   const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
 
@@ -302,22 +288,6 @@ const Sidebar = ({ onClose }) => {
 
   return (
     <>
-      {/* Mobile menu button - visible only on mobile */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-indigo-900 text-white rounded-md shadow-md"
-        onClick={() => setIsOpen(true)}
-      >
-        <Menu size={24} />
-      </button>
-
-      {/* Tablet menu button - visible on tablet (hidden on mobile and desktop) */}
-      <button
-        className="hidden md:block lg:hidden fixed top-4 left-4 z-50 p-2 bg-indigo-900 text-white rounded-md shadow-md"
-        onClick={() => setIsOpen(true)}
-      >
-        <Menu size={24} />
-      </button>
-
       {/* Desktop Sidebar - full width on desktop */}
       <div className="hidden lg:block fixed left-0 top-0 h-full">
         <SidebarContent />
@@ -327,10 +297,10 @@ const Sidebar = ({ onClose }) => {
       <div className={`hidden md:block lg:hidden fixed inset-0 z-40 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div
           className="fixed inset-0 bg-black bg-opacity-50"
-          onClick={() => setIsOpen(false)}
+          onClick={closeSidebar}
         />
         <div className={`fixed left-0 top-0 h-full z-50 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
-          <SidebarContent />
+          <SidebarContent onClose={closeSidebar} />
         </div>
       </div>
 
@@ -338,17 +308,17 @@ const Sidebar = ({ onClose }) => {
       <div className={`md:hidden fixed inset-0 z-40 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div
           className="fixed inset-0 bg-black bg-opacity-50"
-          onClick={() => setIsOpen(false)}
+          onClick={closeSidebar}
         />
         <div className={`fixed left-0 top-0 h-full z-50 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
-          <SidebarContent />
+          <SidebarContent onClose={closeSidebar} />
         </div>
       </div>
 
-      {/* Add padding to main content when sidebar is open on desktop */}
-      <div className="lg:pl-64"></div>
     </>
   );
 };
 
 export default Sidebar;
+
+
