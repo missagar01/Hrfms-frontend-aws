@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getLeaveRequests, updateLeaveRequest } from '../api/leaveRequestApi';
 import { useAuth } from '../context/AuthContext';
@@ -66,6 +66,8 @@ const LeaveManagerApproval = () => {
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
   const [actionSelections, setActionSelections] = useState({});
+  const [approvalModal, setApprovalModal] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
   const normalizeValue = (value) =>
     (value || '')
@@ -156,27 +158,86 @@ const LeaveManagerApproval = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleApprove = async (requestId) => {
+  const formatDateForInput = (value) => {
+    if (!value) {
+      return '';
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return '';
+    }
+    return parsed.toISOString().split('T')[0];
+  };
+
+  const submitApproval = async ({ requestId, from_date, to_date }) => {
     if (!token) {
       toast.error('Please login again to approve.');
-      return;
+      return false;
     }
+    const selectedStatus = actionSelections[requestId] || 'Approved';
+    const approvalLabel = selectedStatus === 'Rejected' ? 'Rejected' : 'Approved';
+    const payload = {
+      approved_by: approverName || null,
+      approved_by_status: approvalLabel,
+      from_date: from_date || null,
+      to_date: to_date || null,
+    };
     try {
-      const selectedStatus = actionSelections[requestId] || 'Approved';
-      const approvalLabel = selectedStatus === 'Rejected' ? 'Rejected' : 'Approved';
-      const payload = {
-        approved_by: approverName || null,
-        approved_by_status: approvalLabel,
-      };
       const response = await updateLeaveRequest(requestId, payload, token);
       if (!response?.success) {
         toast.error(response?.message || 'Approval failed');
-        return;
+        return false;
       }
       toast.success(`Leave ${approvalLabel.toLowerCase()} successfully.`);
-      fetchData();
+      await fetchData();
+      return true;
     } catch (error) {
       toast.error(error?.message || 'Approval failed');
+      return false;
+    }
+  };
+
+  const openApprovalModal = (item) => {
+    if (!item) {
+      return;
+    }
+    setApprovalModal({
+      requestId: item.id,
+      from_date: formatDateForInput(item.from_date),
+      to_date: formatDateForInput(item.to_date),
+    });
+  };
+
+  const closeApprovalModal = () => {
+    setApprovalModal(null);
+  };
+
+  const handleModalFieldChange = (event) => {
+    const { name, value } = event.target;
+    setApprovalModal((prev) =>
+      prev ? { ...prev, [name]: value } : prev
+    );
+  };
+
+  const handleModalActionChange = (value) => {
+    if (!approvalModal?.requestId) {
+      return;
+    }
+    setActionSelections((prev) => ({
+      ...prev,
+      [approvalModal.requestId]: value,
+    }));
+  };
+
+  const handleModalSubmit = async () => {
+    if (!approvalModal?.requestId) {
+      return;
+    }
+    setModalLoading(true);
+    const success = await submitApproval(approvalModal);
+    setModalLoading(false);
+    if (success) {
+      closeApprovalModal();
     }
   };
 
@@ -246,28 +307,15 @@ const LeaveManagerApproval = () => {
                       <td className="px-2 sm:px-4 py-3">{item.hr_approval || '-'}</td>
                       <td className="px-2 sm:px-4 py-3">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
-                          <select
-                            value={actionSelections[item.id] || 'Approved'}
-                            onChange={(event) =>
-                              setActionSelections((prev) => ({
-                                ...prev,
-                                [item.id]: event.target.value,
-                              }))
-                            }
-                            className="w-full sm:w-auto rounded-lg border border-gray-300 px-2 py-1.5 text-xs text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            disabled={isFinalized}
-                          >
-                            <option value="Approved">Approve</option>
-                            <option value="Rejected">Reject</option>
-                          </select>
+                          
                           <button
                             type="button"
-                            onClick={() => handleApprove(item.id)}
+                            onClick={() => openApprovalModal(item)}
                             disabled={isFinalized}
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                           >
-                            <CheckCircle size={14} />
-                            Submit
+                            <Edit size={14} />
+                            Edit
                           </button>
                         </div>
                       </td>
@@ -279,6 +327,82 @@ const LeaveManagerApproval = () => {
             </div>
           </div>
         </div>
+        {approvalModal && (
+          <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 px-4 py-6">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-lg font-semibold text-gray-900">Confirm Approval</p>
+                  <p className="text-sm text-gray-500">Update the leave duration before submitting.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeApprovalModal}
+                  className="text-gray-400 transition hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="mt-4 grid gap-4">
+                <label className="text-sm font-medium text-gray-700" htmlFor="modal_from_date">
+                  From Date
+                </label>
+                <input
+                  id="modal_from_date"
+                  name="from_date"
+                  type="date"
+                  value={approvalModal.from_date}
+                  onChange={handleModalFieldChange}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
+                <label className="text-sm font-medium text-gray-700" htmlFor="modal_to_date">
+                  To Date
+                </label>
+                <input
+                  id="modal_to_date"
+                  name="to_date"
+                  type="date"
+                  value={approvalModal.to_date}
+                  onChange={handleModalFieldChange}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
+              </div>
+              <div className="mt-4">
+                <label className="text-sm font-medium text-gray-700" htmlFor="modal_action">
+                  Action
+                </label>
+                <select
+                  id="modal_action"
+                  value={actionSelections[approvalModal.requestId] || 'Approved'}
+                  onChange={(event) => handleModalActionChange(event.target.value)}
+                  disabled={modalLoading}
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                >
+                  <option value="Approved">Approve</option>
+                  <option value="Rejected">Reject</option>
+                </select>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeApprovalModal}
+                  disabled={modalLoading}
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleModalSubmit}
+                  disabled={modalLoading}
+                  className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {modalLoading ? 'Processing...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

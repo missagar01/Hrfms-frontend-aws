@@ -93,7 +93,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' },
     { path: '/resume-request', icon: BadgeDollarSign, label: 'MainPower Request' },
     { path: '/requests', icon: NotebookPen, label: 'Travel Form' },
-    { path: '/resumes', icon: FileText, label: 'Resume' },
+    { path: '/resumes', icon: FileText, label: 'MainPower Request' },
     { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
     { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
     { path: '/leave-request', icon: LeaveIcon, label: 'Leave Request' },

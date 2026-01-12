@@ -10,7 +10,7 @@ const initialForm = {
   employee_code: '',
   type_of_travel: 'Official',
   reason_for_travel: '',
-  no_of_person: 1,
+  no_of_person: '',
   from_date: '',
   to_date: '',
   departure_date: '',
@@ -18,9 +18,11 @@ const initialForm = {
   requester_designation: '',
   requester_department: '',
   request_for: '',
-  request_quantity: 1,
+  request_quantity: '',
   experience: '',
   education: '',
+  from_city: '',
+  to_city: '',
   remarks: '',
   request_status: 'Open',
 };
@@ -92,6 +94,7 @@ const RequestCreate = () => {
         return;
       }
       toast.success('Request submitted successfully!');
+      console.log(payload)
       setForm({
         ...initialForm,
         employee_code: defaultEmployeeCode,
@@ -174,6 +177,7 @@ const RequestCreate = () => {
               />
             </div>
 
+
             <div>
               <label className="text-sm font-medium text-gray-700" htmlFor="no_of_person">No. of Persons</label>
               <input
@@ -210,8 +214,34 @@ const RequestCreate = () => {
                 onChange={handleChange}
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 required
-              />
-            </div>
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700" htmlFor="from_city">From City</label>
+            <input
+              id="from_city"
+              name="from_city"
+              value={form.from_city}
+              onChange={handleChange}
+              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              placeholder="Raipur"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700" htmlFor="to_city">To City</label>
+            <input
+              id="to_city"
+              name="to_city"
+              value={form.to_city}
+              onChange={handleChange}
+              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              placeholder="Delhi"
+              required
+            />
+          </div>
 
             <div>
               <label className="text-sm font-medium text-gray-700" htmlFor="departure_date">Departure Date</label>
@@ -225,6 +255,8 @@ const RequestCreate = () => {
               />
             </div>
 
+
+            
             <div>
               <label className="text-sm font-medium text-gray-700" htmlFor="requester_department">Requester Department</label>
               <select

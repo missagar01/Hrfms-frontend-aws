@@ -234,15 +234,17 @@ const TicketCreate = () => {
             </button>
           </div>
           <div className="w-full overflow-x-auto">
-            <table className="w-full min-w-[900px] divide-y divide-gray-200 text-sm">
+            <table className="w-full min-w-[1200px] divide-y divide-gray-200 text-sm">
               <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Action</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Request No</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Person Name</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Travel Type</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">From</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">To</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">From City</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">To City</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">From Date</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">To Date</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Departure Date</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">No. of Persons</th>
                 </tr>
@@ -250,14 +252,14 @@ const TicketCreate = () => {
               <tbody className="divide-y divide-gray-100 bg-white">
                 {loadingRequests && (
                   <tr>
-                    <td colSpan="8" className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan="10" className="px-4 py-6 text-center text-gray-500">
                       Loading requests...
                     </td>
                   </tr>
                 )}
                 {!loadingRequests && requests.length === 0 && (
                   <tr>
-                    <td colSpan="8" className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan="10" className="px-4 py-6 text-center text-gray-500">
                       No requests found.
                     </td>
                   </tr>
@@ -276,6 +278,8 @@ const TicketCreate = () => {
                     <td className="px-4 py-3">{item.request_no || `Request ${item.id}`}</td>
                     <td className="px-4 py-3">{item.person_name || '-'}</td>
                     <td className="px-4 py-3">{item.type_of_travel || '-'}</td>
+                    <td className="px-4 py-3">{item.from_city || '-'}</td>
+                    <td className="px-4 py-3">{item.to_city || '-'}</td>
                     <td className="px-4 py-3">{item.from_date ? new Date(item.from_date).toLocaleDateString() : '-'}</td>
                     <td className="px-4 py-3">{item.to_date ? new Date(item.to_date).toLocaleDateString() : '-'}</td>
                     <td className="px-4 py-3">{item.departure_date ? new Date(item.departure_date).toLocaleDateString() : '-'}</td>
