@@ -136,50 +136,43 @@ const TravelStatus = () => {
           </div>
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[1000px] divide-y divide-gray-200 text-sm">
-                <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
+              <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Person Name</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Request Code</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Booked Name</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Bill Number</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Type</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Charges</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Total</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Bill Image</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white">
+                {loading && (
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Person Name</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Request Code</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Booked Name</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Bill Number</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Charges</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Total</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Bill Image</th>
+                    <td colSpan="9" className="px-4 py-6 text-center text-gray-500">
+                      Loading tickets...
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
-                  {loading && (
-                    <tr>
-                      <td colSpan="9" className="px-4 py-6 text-center text-gray-500">
-                        Loading tickets...
-                      </td>
-                    </tr>
-                  )}
-                  {!loading && filteredTickets.length === 0 && (
-                    <tr>
-                      <td colSpan="9" className="px-4 py-6 text-center text-gray-500">
-                        No tickets found.
-                      </td>
-                    </tr>
-                  )}
-                  {!loading && filteredTickets.map((ticket) => {
-                    const statusLabel = ticket.status || '-';
-                    const statusValue = String(ticket.status || '').toLowerCase();
-                    const statusClass = statusValue === 'booked'
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : statusValue === 'cancel'
-                        ? 'bg-rose-100 text-rose-700'
-                        : 'bg-slate-100 text-slate-700';
+                )}
+                {!loading && filteredTickets.map((ticket) => {
+                  const statusLabel = ticket.status || '-';
+                  const statusValue = String(ticket.status || '').toLowerCase();
+                  const statusClass = statusValue === 'booked'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : statusValue === 'cancel'
+                      ? 'bg-rose-100 text-rose-700'
+                      : 'bg-slate-100 text-slate-700';
 
-                    return (
-                      <tr key={ticket.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3">
-                          <span className={`rounded-full px-2 py-1 text-xs font-semibold ${statusClass}`}>
-                            {statusLabel}
-                          </span>
-                        </td>
+                  return (
+                    <tr key={ticket.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2 py-1 text-xs font-semibold ${statusClass}`}>
+                          {statusLabel}
+                        </span>
+                      </td>
                       <td className="px-4 py-3">{ticket.person_name || '-'}</td>
                       <td className="px-4 py-3">{ticket.request_employee_code || '-'}</td>
                       <td className="px-4 py-3">{ticket.booked_name || '-'}</td>
@@ -202,13 +195,19 @@ const TravelStatus = () => {
                         )}
                       </td>
                     </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                  );
+                })}
+                { !loading && filteredTickets.length === 0 && (
+                  <tr>
+                    <td colSpan="9" className="px-4 py-6 text-center text-gray-500">
+                      No tickets found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
 
         {(previewImage || previewLoading || previewError) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">

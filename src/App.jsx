@@ -42,6 +42,7 @@ const RoleBasedHome = () => {
     return <Dashboard />;
   }
 
+  // For employees, always redirect to My Profile
   return <Navigate to="/my-profile" replace />;
 };
 

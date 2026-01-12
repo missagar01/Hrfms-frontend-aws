@@ -123,11 +123,18 @@ const Sidebar = ({ onClose }) => {
 
   // Filter menu items based on role and page_access
   const menuItems = useMemo(() => {
+    // My Profile is always available to everyone and should be at the top
+    const myProfileItem = { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' };
+    
     if (isAdmin) {
       // Admin sees all admin and employee menu items (remove duplicates by path)
       const allItems = [...finalAdminMenuItems, ...employeeMenuItems];
       const uniqueItems = [];
       const seenPaths = new Set();
+      
+      // Always include My Profile at the top
+      uniqueItems.push(myProfileItem);
+      seenPaths.add('/my-profile');
       
       for (const item of allItems) {
         if (!seenPaths.has(item.path)) {
@@ -139,17 +146,36 @@ const Sidebar = ({ onClose }) => {
       return uniqueItems;
     }
 
-    // For employees, filter by page_access
+    // For employees, show My Profile plus accessible pages.
     const allowedRoutes = normalizePageAccess(pageAccess);
-    if (allowedRoutes.length === 0) return [];
-    
-    return employeeMenuItems.filter(item => {
-      const normalizedRoute = item.path.startsWith('/') ? item.path : `/${item.path}`;
-      return allowedRoutes.some(allowedRoute => {
-        const normalizedAllowed = allowedRoute.startsWith('/') ? allowedRoute : `/${allowedRoute}`;
-        return normalizedRoute === normalizedAllowed;
-      });
+    const seenPaths = new Set();
+    const filteredItems = [];
+
+    // Always include My Profile first
+    filteredItems.push(myProfileItem);
+    seenPaths.add('/my-profile');
+
+    const shouldSkipFiltering = allowedRoutes.length === 0;
+    employeeMenuItems.forEach((item) => {
+      if (item.path === '/my-profile') return;
+      if (!shouldSkipFiltering) {
+        const normalizedRoute = item.path.startsWith('/') ? item.path : `/${item.path}`;
+        const isAllowed = allowedRoutes.some((allowedRoute) => {
+          const normalizedAllowed = allowedRoute.startsWith('/') ? allowedRoute : `/${allowedRoute}`;
+          return normalizedRoute === normalizedAllowed;
+        });
+        if (!isAllowed) {
+          return;
+        }
+      }
+
+      if (!seenPaths.has(item.path)) {
+        seenPaths.add(item.path);
+        filteredItems.push(item);
+      }
     });
+
+    return filteredItems;
   }, [isAdmin, finalAdminMenuItems, employeeMenuItems, pageAccess]);
 
   const SidebarContent = ({ onClose, isCollapsed = false }) => (
