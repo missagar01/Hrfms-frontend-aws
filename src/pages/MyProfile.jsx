@@ -11,6 +11,7 @@ const MyProfile = () => {
   const [loading, setLoading] = useState(true);
   const { user, token } = useAuth();
 
+  
   const [selectedProfileImg, setSelectedProfileImg] = useState(null);
   const [selectedDocumentImg, setSelectedDocumentImg] = useState(null);
   const [previewProfileImg, setPreviewProfileImg] = useState(null);
