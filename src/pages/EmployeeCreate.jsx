@@ -35,6 +35,8 @@ const initialForm = {
   status: 'Active',
   password: '',
   page_access: [],
+  profile_img: null,
+  document_img: null,
 };
 
 const EmployeeCreate = () => {
@@ -51,6 +53,8 @@ const EmployeeCreate = () => {
   const [searchDepartment, setSearchDepartment] = useState('');
   const [showPageAccessDropdown, setShowPageAccessDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const [profileImgPreview, setProfileImgPreview] = useState(null);
+  const [documentImgPreview, setDocumentImgPreview] = useState(null);
   const { token, user } = useAuth();
 
   const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
@@ -119,8 +123,29 @@ const EmployeeCreate = () => {
   }, [showEditModal]);
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, files } = event.target;
+    if (files && files[0]) {
+      const file = files[0];
+      if (name === 'profile_img') {
+        setForm((prev) => ({ ...prev, [name]: file }));
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setProfileImgPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      } else if (name === 'document_img') {
+        setForm((prev) => ({ ...prev, [name]: file }));
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setDocumentImgPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handlePageAccessToggle = (routePath) => {
@@ -225,7 +250,11 @@ const EmployeeCreate = () => {
       (payload.page_access || []).length === (originalPayload.page_access || []).length &&
       payload.page_access.every((accessItem, index) => accessItem === (originalPayload.page_access || [])[index]);
 
-    return !arePageAccessEqual;
+    // Check if images have changed (new files uploaded)
+    const profileImgChanged = form.profile_img instanceof File;
+    const documentImgChanged = form.document_img instanceof File;
+
+    return !arePageAccessEqual || profileImgChanged || documentImgChanged;
   };
 
   const handleSubmit = async (event) => {
@@ -256,26 +285,58 @@ const EmployeeCreate = () => {
         ? currentFormState.page_access 
         : normalizePageAccessInput(currentFormState.page_access);
       
-      const payload = {
-        employee_code: currentFormState.employee_code.trim(),
-        employee_name: currentFormState.employee_name.trim(),
-        email: currentFormState.email.trim(),
-        mobile_number: currentFormState.mobile_number.trim(),
-        department: currentFormState.department.trim(),
-        designation: currentFormState.designation.trim(),
-        role: currentFormState.role,
-        status: currentFormState.status,
-        password: currentFormState.password,
-        page_access: pageAccessArray,
-      };
+      // Check if we have image files to upload
+      const hasNewImages = currentFormState.profile_img instanceof File || currentFormState.document_img instanceof File;
+      
+      let payload;
+      if (hasNewImages) {
+        // Use FormData for file uploads
+        payload = new FormData();
+        payload.append('employee_code', currentFormState.employee_code.trim());
+        payload.append('employee_name', currentFormState.employee_name.trim());
+        payload.append('email', currentFormState.email.trim());
+        payload.append('mobile_number', currentFormState.mobile_number.trim());
+        payload.append('department', currentFormState.department.trim());
+        payload.append('designation', currentFormState.designation.trim());
+        payload.append('role', currentFormState.role);
+        payload.append('status', currentFormState.status);
+        payload.append('page_access', JSON.stringify(pageAccessArray));
+        
+        if (currentFormState.password) {
+          payload.append('password', currentFormState.password);
+        }
+        
+        // Only append files if they are File objects
+        if (currentFormState.profile_img instanceof File) {
+          payload.append('profile_img', currentFormState.profile_img);
+        }
+        
+        if (currentFormState.document_img instanceof File) {
+          payload.append('document_img', currentFormState.document_img);
+        }
+      } else {
+        // Use regular JSON payload
+        payload = {
+          employee_code: currentFormState.employee_code.trim(),
+          employee_name: currentFormState.employee_name.trim(),
+          email: currentFormState.email.trim(),
+          mobile_number: currentFormState.mobile_number.trim(),
+          department: currentFormState.department.trim(),
+          designation: currentFormState.designation.trim(),
+          role: currentFormState.role,
+          status: currentFormState.status,
+          password: currentFormState.password,
+          page_access: pageAccessArray,
+        };
 
-      if (editingId && !payload.password) {
-        delete payload.password;
+        if (editingId && !payload.password) {
+          delete payload.password;
+        }
       }
 
-      console.log('Submitting payload:', JSON.stringify(payload, null, 2));
+      console.log('Submitting payload:', hasImages ? 'FormData with files' : JSON.stringify(payload, null, 2));
 
-      if (isEditing && !hasPayloadChanged(payload)) {
+      if (isEditing && !hasImages && !hasPayloadChanged(payload)) {
         toast('No changes detected');
         setSubmitting(false);
         return;
@@ -294,6 +355,8 @@ const EmployeeCreate = () => {
 
       toast.success(isEditing ? 'Employee updated successfully' : 'Employee created successfully');
       setForm(initialForm);
+      setProfileImgPreview(null);
+      setDocumentImgPreview(null);
       setEditingId(null);
       setShowForm(false);
       setShowEditModal(false);
@@ -329,7 +392,13 @@ const EmployeeCreate = () => {
       role: employee?.role ?? 'user',
       status: employee?.status ?? 'Active',
       password: '',
+      profile_img: employee?.profile_img || null,
+      document_img: employee?.document_img || null,
     };
+    
+    // Set preview images if they exist
+    setProfileImgPreview(employee?.profile_img || null);
+    setDocumentImgPreview(employee?.document_img || null);
 
     setOriginalPayload({
       employee_code: formValues.employee_code,
@@ -342,6 +411,8 @@ const EmployeeCreate = () => {
       status: formValues.status,
       password: '',
       page_access: [...normalizedPageAccessValue],
+      profile_img: formValues.profile_img,
+      document_img: formValues.document_img,
     });
 
     setForm(formValues);
@@ -374,6 +445,8 @@ const EmployeeCreate = () => {
 
   const handleReset = () => {
     setForm(initialForm);
+    setProfileImgPreview(null);
+    setDocumentImgPreview(null);
     setEditingId(null);
     setOriginalPayload(null);
   };
@@ -382,6 +455,8 @@ const EmployeeCreate = () => {
     setShowEditModal(false);
     setEditingId(null);
     setForm(initialForm);
+    setProfileImgPreview(null);
+    setDocumentImgPreview(null);
     setOriginalPayload(null);
   };
 
@@ -523,6 +598,48 @@ const EmployeeCreate = () => {
             />
           </div>
         )}
+
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="profile_img">Profile Image</label>
+          <input
+            id="profile_img"
+            name="profile_img"
+            type="file"
+            accept="image/*"
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          />
+          {profileImgPreview && (
+            <div className="mt-2">
+              <img
+                src={profileImgPreview}
+                alt="Profile preview"
+                className="h-24 w-24 rounded-lg object-cover border border-gray-300"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="document_img">Document Image</label>
+          <input
+            id="document_img"
+            name="document_img"
+            type="file"
+            accept="image/*"
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          />
+          {documentImgPreview && (
+            <div className="mt-2">
+              <img
+                src={documentImgPreview}
+                alt="Document preview"
+                className="h-24 w-24 rounded-lg object-cover border border-gray-300"
+              />
+            </div>
+          )}
+        </div>
 
         <div className="sm:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="page_access">Page Access</label>
