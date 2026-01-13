@@ -11,7 +11,7 @@ const MyProfile = () => {
   const [loading, setLoading] = useState(true);
   const { user, token } = useAuth();
 
-  
+
   const [selectedProfileImg, setSelectedProfileImg] = useState(null);
   const [selectedDocumentImg, setSelectedDocumentImg] = useState(null);
   const [previewProfileImg, setPreviewProfileImg] = useState(null);
@@ -28,7 +28,7 @@ const MyProfile = () => {
 
       const response = await getEmployeeById(user.id, token);
       const profile = response?.data;
-      console.log(profile)
+      // console.log(profile)
       if (!profile) {
         throw new Error('No profile data found');
       }
