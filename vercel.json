@@ -10,18 +10,6 @@
       "source": "/(.*)",
       "headers": [
         {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; img-src 'self' blob: data: https://hrfms.sagartmt.com; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://hrfms.sagartmt.com; frame-ancestors 'self' https://my-dashboard-olive-alpha.vercel.app https://hrfms-frontend-aws.vercel.app"
         }
