@@ -23,7 +23,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' blob: data: https://hrfms.sagartmt.com; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://hrfms.sagartmt.com; frame-ancestors 'self' https://my-dashboard-olive-alpha.vercel.app"
+          "value": "default-src 'self'; img-src 'self' blob: data: https://hrfms.sagartmt.com; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://hrfms.sagartmt.com; frame-ancestors 'self' https://hrfms-frontend-aws.verce"
         }
       ]
     }
