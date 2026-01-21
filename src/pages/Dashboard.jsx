@@ -90,6 +90,12 @@ const Dashboard = () => {
     pending: 0,
     rejected: 0
   });
+  const [attendance, setAttendance] = useState({
+    present: 0,
+    absent: 0,
+    totalActive: 0,
+    date: ''
+  });
   const [statusDistribution, setStatusDistribution] = useState([]);
   const [monthlyHiringData, setMonthlyHiringData] = useState([]);
   const [monthlyRequestTrends, setMonthlyRequestTrends] = useState([]);
@@ -166,6 +172,12 @@ const Dashboard = () => {
         setMonthlyRequestTrends(Array.isArray(payload.monthlyRequestTrends) ? payload.monthlyRequestTrends : []);
         setMonthlyTicketRevenue(Array.isArray(payload.monthlyTicketRevenue) ? payload.monthlyTicketRevenue : []);
         setDesignationData(Array.isArray(payload.designationCounts) ? payload.designationCounts : []);
+        setAttendance(payload.attendance ?? {
+          present: 0,
+          absent: 0,
+          totalActive: 0,
+          date: ''
+        });
       } catch (loadError) {
         if (!isMounted) return;
         setError(loadError.message || 'Failed to load dashboard data');
@@ -273,14 +285,14 @@ const Dashboard = () => {
 
   const pieData = statusDistribution.length
     ? statusDistribution.map((entry, index) => ({
-        name: entry.label,
-        value: entry.value,
-        color: STATUS_COLORS[index % STATUS_COLORS.length]
-      }))
+      name: entry.label,
+      value: entry.value,
+      color: STATUS_COLORS[index % STATUS_COLORS.length]
+    }))
     : [
-        { name: 'Active', value: summary.activeEmployees, color: '#10B981' },
-        { name: 'Resigned', value: summary.resignedEmployees, color: '#EF4444' }
-      ];
+      { name: 'Active', value: summary.activeEmployees, color: '#10B981' },
+      { name: 'Resigned', value: summary.resignedEmployees, color: '#EF4444' }
+    ];
 
   if (loading) {
     return (
@@ -296,21 +308,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4 sm:p-6 lg:p-8">
       <div className="w-full space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                HR Management Dashboard
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-2">Comprehensive overview of your HR operations</p>
-            </div>
-            <div className="flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full px-4 py-2">
-              <TrendingUp className="text-indigo-600" size={20} />
-              <span className="text-sm font-semibold text-indigo-700">Live Data</span>
-            </div>
-          </div>
-        </div>
+
 
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
@@ -343,6 +341,32 @@ const Dashboard = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Attendance Card */}
+        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold mb-2 flex items-center">
+                <Clock size={20} className="mr-2" />
+                Today's Attendance {attendance.date ? `(${attendance.date})` : ''}
+              </h2>
+              <div className="grid grid-cols-3 gap-8 mt-4">
+                <div>
+                  <p className="text-xs opacity-90 mb-1">Total Active</p>
+                  <p className="text-2xl font-bold">{attendance.totalActive}</p>
+                </div>
+                <div>
+                  <p className="text-xs opacity-90 mb-1">Present</p>
+                  <p className="text-2xl font-bold">{attendance.present}</p>
+                </div>
+                <div>
+                  <p className="text-xs opacity-90 mb-1">Absent</p>
+                  <p className="text-2xl font-bold">{attendance.absent}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Request Status Cards */}
@@ -422,8 +446,8 @@ const Dashboard = () => {
                 <AreaChart data={monthlyHiringData}>
                   <defs>
                     <linearGradient id="colorHired" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
@@ -504,10 +528,10 @@ const Dashboard = () => {
                           index % 4 === 0
                             ? '#6366F1'
                             : index % 4 === 1
-                            ? '#10B981'
-                            : index % 4 === 2
-                            ? '#F59E0B'
-                            : '#EC4899'
+                              ? '#10B981'
+                              : index % 4 === 2
+                                ? '#F59E0B'
+                                : '#EC4899'
                         }
                       />
                     ))}
