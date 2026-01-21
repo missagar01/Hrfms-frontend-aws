@@ -76,6 +76,18 @@ const PlaneVisitor = () => {
     loadVisitors();
   }, [loadVisitors]);
 
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    if (showForm) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showForm]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -144,7 +156,7 @@ const PlaneVisitor = () => {
             <div>
               <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Plant Visitors</p>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Plant Visitor Requests</h1>
-            
+
             </div>
             <button
               type="button"
@@ -152,7 +164,7 @@ const PlaneVisitor = () => {
               className="inline-flex items-center justify-center rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
             >
               Open Visitor Form
-            </button>   
+            </button>
           </div>
         </div>
 
@@ -236,183 +248,181 @@ const PlaneVisitor = () => {
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/60 px-4 py-6">
-          <div className="mx-auto flex h-full items-start justify-center sm:items-center">
-            <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Plant Visitor Requests</h2>
-                  <p className="text-sm text-gray-500">Record a new visitor request.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCloseForm}
-                  className="text-sm font-semibold text-gray-600 hover:text-gray-900"
-                >
-                  Close
-                </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm sm:p-6 transition-all duration-300">
+          <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+            <div className="flex flex-none items-center justify-between border-b border-gray-200 px-6 py-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Plant Visitor Requests</h2>
+                <p className="text-sm text-gray-500">Record a new visitor request.</p>
               </div>
-              <div className="overflow-y-auto px-6 py-5">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700" htmlFor="person_name">
-                        Person Name
-                      </label>
-                      <input
-                        id="person_name"
-                        name="person_name"
-                        value={personNameValue}
-                        onChange={handleChange}
-                        readOnly={Boolean(defaultPersonName)}
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        placeholder="Rupesh Sahu"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700" htmlFor="employee_code">
-                        Employee Code
-                      </label>
-                      <input
-                        id="employee_code"
-                        name="employee_code"
-                        value={employeeCodeValue}
-                        onChange={handleChange}
-                        readOnly={Boolean(defaultEmployeeCode)}
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        placeholder="EMP123"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700" htmlFor="requester_name">
-                        Requester Name
-                      </label>
-                      <input
-                        id="requester_name"
-                        name="requester_name"
-                        value={form.requester_name}
-                        onChange={handleChange}
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        placeholder="Anita Verma"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700" htmlFor="reason_for_visit">
-                        Reason for Visit
-                      </label>
-                      <input
-                        id="reason_for_visit"
-                        name="reason_for_visit"
-                        value={form.reason_for_visit}
-                        onChange={handleChange}
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        placeholder="Stakeholder update"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700" htmlFor="request_for">
-                        Request For
-                      </label>
-                      <input
-                        id="request_for"
-                        name="request_for"
-                        value={form.request_for}
-                        onChange={handleChange}
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        placeholder="Laptop"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700" htmlFor="no_of_person">
-                        No. of Persons
-                      </label>
-                      <input
-                        id="no_of_person"
-                        name="no_of_person"
-                        type="number"
-                        min="1"
-                        value={form.no_of_person}
-                        onChange={handleChange}
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700" htmlFor="from_date">
-                        From Date
-                      </label>
-                      <input
-                        id="from_date"
-                        name="from_date"
-                        type="date"
-                        value={form.from_date}
-                        onChange={handleChange}
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700" htmlFor="to_date">
-                        To Date
-                      </label>
-                      <input
-                        id="to_date"
-                        name="to_date"
-                        type="date"
-                        value={form.to_date}
-                        onChange={handleChange}
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        required
-                      />
-                    </div>
-                  </div>
-
+              <button
+                type="button"
+                onClick={handleCloseForm}
+                className="text-sm font-semibold text-gray-600 hover:text-gray-900"
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="remarks">
-                      Remarks
+                    <label className="text-sm font-medium text-gray-700" htmlFor="person_name">
+                      Person Name
                     </label>
-                    <textarea
-                      id="remarks"
-                      name="remarks"
-                      value={form.remarks}
+                    <input
+                      id="person_name"
+                      name="person_name"
+                      value={personNameValue}
                       onChange={handleChange}
-                      rows={3}
+                      readOnly={Boolean(defaultPersonName)}
                       className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      placeholder="Add some context about the visit"
+                      placeholder="Rupesh Sahu"
+                      required
                     />
                   </div>
 
-            
-
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-                    <button
-                      type="button"
-                      onClick={handleCloseForm}
-                      className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
-                    >
-                      <Send size={16} className="mr-2" />
-                      {submitting ? 'Submitting...' : 'Submit Request'}
-                    </button>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700" htmlFor="employee_code">
+                      Employee Code
+                    </label>
+                    <input
+                      id="employee_code"
+                      name="employee_code"
+                      value={employeeCodeValue}
+                      onChange={handleChange}
+                      readOnly={Boolean(defaultEmployeeCode)}
+                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      placeholder="EMP123"
+                      required
+                    />
                   </div>
-                </form>
-              </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700" htmlFor="requester_name">
+                      Requester Name
+                    </label>
+                    <input
+                      id="requester_name"
+                      name="requester_name"
+                      value={form.requester_name}
+                      onChange={handleChange}
+                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      placeholder="Anita Verma"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700" htmlFor="reason_for_visit">
+                      Reason for Visit
+                    </label>
+                    <input
+                      id="reason_for_visit"
+                      name="reason_for_visit"
+                      value={form.reason_for_visit}
+                      onChange={handleChange}
+                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      placeholder="Stakeholder update"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700" htmlFor="request_for">
+                      Request For
+                    </label>
+                    <input
+                      id="request_for"
+                      name="request_for"
+                      value={form.request_for}
+                      onChange={handleChange}
+                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      placeholder="Laptop"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700" htmlFor="no_of_person">
+                      No. of Persons
+                    </label>
+                    <input
+                      id="no_of_person"
+                      name="no_of_person"
+                      type="number"
+                      min="1"
+                      value={form.no_of_person}
+                      onChange={handleChange}
+                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700" htmlFor="from_date">
+                      From Date
+                    </label>
+                    <input
+                      id="from_date"
+                      name="from_date"
+                      type="date"
+                      value={form.from_date}
+                      onChange={handleChange}
+                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700" htmlFor="to_date">
+                      To Date
+                    </label>
+                    <input
+                      id="to_date"
+                      name="to_date"
+                      type="date"
+                      value={form.to_date}
+                      onChange={handleChange}
+                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700" htmlFor="remarks">
+                    Remarks
+                  </label>
+                  <textarea
+                    id="remarks"
+                    name="remarks"
+                    value={form.remarks}
+                    onChange={handleChange}
+                    rows={3}
+                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    placeholder="Add some context about the visit"
+                  />
+                </div>
+
+
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={handleCloseForm}
+                    className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <Send size={16} className="mr-2" />
+                    {submitting ? 'Submitting...' : 'Submit Request'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
