@@ -1,40 +1,26 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileText,
-  Globe,
-  Search,
-  Phone,
-  UserCheck,
-  UserX,
-  UserMinus,
-  AlarmClockCheck,
   Users,
-  Calendar,
-  DollarSign,
   FileText as LeaveIcon,
   User as ProfileIcon,
-  Clock,
   LogOut as LogOutIcon,
   X,
   User,
-  Menu,
   ChevronDown,
   ChevronUp,
   NotebookPen,
-  Book,
   BadgeDollarSign,
-  BookPlus,
   UserPlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const Sidebar = ({ onClose }) => {
+const Sidebar = ({ isOpen = false, onClose }) => {
   const { user, logout, pageAccess } = useAuth();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-  const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const closeSidebar = () => onClose?.();
 
   const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
 
@@ -107,7 +93,7 @@ const Sidebar = ({ onClose }) => {
     { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' },
     { path: '/resume-request', icon: BadgeDollarSign, label: 'MainPower Request' },
     { path: '/requests', icon: NotebookPen, label: 'Travel Form' },
-    { path: '/resumes', icon: FileText, label: 'Resume' },
+    { path: '/resumes', icon: FileText, label: 'MainPower Request' },
     { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
     { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
     { path: '/leave-request', icon: LeaveIcon, label: 'Leave Request' },
@@ -130,11 +116,18 @@ const Sidebar = ({ onClose }) => {
 
   // Filter menu items based on role and page_access
   const menuItems = useMemo(() => {
+    // My Profile is always available to everyone and should be at the top
+    const myProfileItem = { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' };
+    
     if (isAdmin) {
       // Admin sees all admin and employee menu items (remove duplicates by path)
       const allItems = [...finalAdminMenuItems, ...employeeMenuItems];
       const uniqueItems = [];
       const seenPaths = new Set();
+      
+      // Always include My Profile at the top
+      uniqueItems.push(myProfileItem);
+      seenPaths.add('/my-profile');
       
       for (const item of allItems) {
         if (!seenPaths.has(item.path)) {
@@ -146,17 +139,36 @@ const Sidebar = ({ onClose }) => {
       return uniqueItems;
     }
 
-    // For employees, filter by page_access
+    // For employees, show My Profile plus accessible pages.
     const allowedRoutes = normalizePageAccess(pageAccess);
-    if (allowedRoutes.length === 0) return [];
-    
-    return employeeMenuItems.filter(item => {
-      const normalizedRoute = item.path.startsWith('/') ? item.path : `/${item.path}`;
-      return allowedRoutes.some(allowedRoute => {
-        const normalizedAllowed = allowedRoute.startsWith('/') ? allowedRoute : `/${allowedRoute}`;
-        return normalizedRoute === normalizedAllowed;
-      });
+    const seenPaths = new Set();
+    const filteredItems = [];
+
+    // Always include My Profile first
+    filteredItems.push(myProfileItem);
+    seenPaths.add('/my-profile');
+
+    const shouldSkipFiltering = allowedRoutes.length === 0;
+    employeeMenuItems.forEach((item) => {
+      if (item.path === '/my-profile') return;
+      if (!shouldSkipFiltering) {
+        const normalizedRoute = item.path.startsWith('/') ? item.path : `/${item.path}`;
+        const isAllowed = allowedRoutes.some((allowedRoute) => {
+          const normalizedAllowed = allowedRoute.startsWith('/') ? allowedRoute : `/${allowedRoute}`;
+          return normalizedRoute === normalizedAllowed;
+        });
+        if (!isAllowed) {
+          return;
+        }
+      }
+
+      if (!seenPaths.has(item.path)) {
+        seenPaths.add(item.path);
+        filteredItems.push(item);
+      }
     });
+
+    return filteredItems;
   }, [isAdmin, finalAdminMenuItems, employeeMenuItems, pageAccess]);
 
   const SidebarContent = ({ onClose, isCollapsed = false }) => (
@@ -276,22 +288,6 @@ const Sidebar = ({ onClose }) => {
 
   return (
     <>
-      {/* Mobile menu button - visible only on mobile */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-indigo-900 text-white rounded-md shadow-md"
-        onClick={() => setIsOpen(true)}
-      >
-        <Menu size={24} />
-      </button>
-
-      {/* Tablet menu button - visible on tablet (hidden on mobile and desktop) */}
-      <button
-        className="hidden md:block lg:hidden fixed top-4 left-4 z-50 p-2 bg-indigo-900 text-white rounded-md shadow-md"
-        onClick={() => setIsOpen(true)}
-      >
-        <Menu size={24} />
-      </button>
-
       {/* Desktop Sidebar - full width on desktop */}
       <div className="hidden lg:block fixed left-0 top-0 h-full">
         <SidebarContent />
@@ -301,10 +297,10 @@ const Sidebar = ({ onClose }) => {
       <div className={`hidden md:block lg:hidden fixed inset-0 z-40 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div
           className="fixed inset-0 bg-black bg-opacity-50"
-          onClick={() => setIsOpen(false)}
+          onClick={closeSidebar}
         />
         <div className={`fixed left-0 top-0 h-full z-50 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
-          <SidebarContent />
+          <SidebarContent onClose={closeSidebar} />
         </div>
       </div>
 
@@ -312,17 +308,17 @@ const Sidebar = ({ onClose }) => {
       <div className={`md:hidden fixed inset-0 z-40 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div
           className="fixed inset-0 bg-black bg-opacity-50"
-          onClick={() => setIsOpen(false)}
+          onClick={closeSidebar}
         />
         <div className={`fixed left-0 top-0 h-full z-50 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
-          <SidebarContent />
+          <SidebarContent onClose={closeSidebar} />
         </div>
       </div>
 
-      {/* Add padding to main content when sidebar is open on desktop */}
-      <div className="lg:pl-64"></div>
     </>
   );
 };
 
 export default Sidebar;
+
+

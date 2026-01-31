@@ -252,7 +252,7 @@ const ResumeList = () => {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="text-lg sm:text-xl font-semibold text-white">
-                  Resume List
+                  MainPower Request List
                 </h3>
                 <p className="mt-1 text-sm text-indigo-100">
                   Total: <span className="font-semibold">{count}</span>

@@ -35,6 +35,8 @@ const initialForm = {
   status: 'Active',
   password: '',
   page_access: [],
+  profile_img: null,
+  document_img: null,
 };
 
 const EmployeeCreate = () => {
@@ -51,6 +53,8 @@ const EmployeeCreate = () => {
   const [searchDepartment, setSearchDepartment] = useState('');
   const [showPageAccessDropdown, setShowPageAccessDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const [profileImgPreview, setProfileImgPreview] = useState(null);
+  const [documentImgPreview, setDocumentImgPreview] = useState(null);
   const { token, user } = useAuth();
 
   const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
@@ -119,29 +123,45 @@ const EmployeeCreate = () => {
   }, [showEditModal]);
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, files } = event.target;
+    if (files && files[0]) {
+      const file = files[0];
+      if (name === 'profile_img') {
+        setForm((prev) => ({ ...prev, [name]: file }));
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setProfileImgPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      } else if (name === 'document_img') {
+        setForm((prev) => ({ ...prev, [name]: file }));
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setDocumentImgPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handlePageAccessToggle = (routePath) => {
     setForm((prev) => {
       const currentAccess = Array.isArray(prev.page_access) ? prev.page_access : [];
       const isSelected = currentAccess.includes(routePath);
-      
+
       const newPageAccess = isSelected
         ? currentAccess.filter(path => path !== routePath)
         : [...currentAccess, routePath];
-      
-      console.log('Page access toggle - routePath:', routePath, 'isSelected:', isSelected, 'newPageAccess:', newPageAccess);
-      
+
       return { ...prev, page_access: newPageAccess };
     });
   };
 
-  // Debug: Log form.page_access changes
-  useEffect(() => {
-    console.log('Form page_access changed:', form.page_access);
-  }, [form.page_access]);
+
 
   const normalizePageAccessInput = (value) => {
     if (!value) {
@@ -171,13 +191,13 @@ const EmployeeCreate = () => {
   const buildPayload = () => {
     // Get current form page_access directly - don't normalize again as it's already normalized when set
     const currentPageAccess = form.page_access;
-    const pageAccessArray = Array.isArray(currentPageAccess) 
-      ? currentPageAccess 
+    const pageAccessArray = Array.isArray(currentPageAccess)
+      ? currentPageAccess
       : normalizePageAccessInput(currentPageAccess);
-    
-    // Debug logging
-    console.log('Building payload - form.page_access:', form.page_access, 'pageAccessArray:', pageAccessArray);
-    
+
+
+
+
     const payload = {
       employee_code: form.employee_code.trim(),
       employee_name: form.employee_name.trim(),
@@ -225,7 +245,11 @@ const EmployeeCreate = () => {
       (payload.page_access || []).length === (originalPayload.page_access || []).length &&
       payload.page_access.every((accessItem, index) => accessItem === (originalPayload.page_access || [])[index]);
 
-    return !arePageAccessEqual;
+    // Check if images have changed (new files uploaded)
+    const profileImgChanged = form.profile_img instanceof File;
+    const documentImgChanged = form.document_img instanceof File;
+
+    return !arePageAccessEqual || profileImgChanged || documentImgChanged;
   };
 
   const handleSubmit = async (event) => {
@@ -245,37 +269,68 @@ const EmployeeCreate = () => {
     try {
       // Get the latest form state directly to ensure we have the current page_access
       const currentFormState = { ...form };
-      console.log('Current form state before buildPayload:', currentFormState);
-      
+
       // Temporarily override form for buildPayload to use latest state
       const originalForm = form;
       const tempForm = { ...form, ...currentFormState };
-      
-      // Build payload with explicit page_access
-      const pageAccessArray = Array.isArray(currentFormState.page_access) 
-        ? currentFormState.page_access 
-        : normalizePageAccessInput(currentFormState.page_access);
-      
-      const payload = {
-        employee_code: currentFormState.employee_code.trim(),
-        employee_name: currentFormState.employee_name.trim(),
-        email: currentFormState.email.trim(),
-        mobile_number: currentFormState.mobile_number.trim(),
-        department: currentFormState.department.trim(),
-        designation: currentFormState.designation.trim(),
-        role: currentFormState.role,
-        status: currentFormState.status,
-        password: currentFormState.password,
-        page_access: pageAccessArray,
-      };
 
-      if (editingId && !payload.password) {
-        delete payload.password;
+      // Build payload with explicit page_access
+      const pageAccessArray = Array.isArray(currentFormState.page_access)
+        ? currentFormState.page_access
+        : normalizePageAccessInput(currentFormState.page_access);
+
+      // Check if we have image files to upload
+      const hasNewImages = currentFormState.profile_img instanceof File || currentFormState.document_img instanceof File;
+
+      let payload;
+      if (hasNewImages) {
+        // Use FormData for file uploads
+        payload = new FormData();
+        payload.append('employee_code', currentFormState.employee_code.trim());
+        payload.append('employee_name', currentFormState.employee_name.trim());
+        payload.append('email', currentFormState.email.trim());
+        payload.append('mobile_number', currentFormState.mobile_number.trim());
+        payload.append('department', currentFormState.department.trim());
+        payload.append('designation', currentFormState.designation.trim());
+        payload.append('role', currentFormState.role);
+        payload.append('status', currentFormState.status);
+        payload.append('page_access', JSON.stringify(pageAccessArray));
+
+        if (currentFormState.password) {
+          payload.append('password', currentFormState.password);
+        }
+
+        // Only append files if they are File objects
+        if (currentFormState.profile_img instanceof File) {
+          payload.append('profile_img', currentFormState.profile_img);
+        }
+
+        if (currentFormState.document_img instanceof File) {
+          payload.append('document_img', currentFormState.document_img);
+        }
+      } else {
+        // Use regular JSON payload
+        payload = {
+          employee_code: currentFormState.employee_code.trim(),
+          employee_name: currentFormState.employee_name.trim(),
+          email: currentFormState.email.trim(),
+          mobile_number: currentFormState.mobile_number.trim(),
+          department: currentFormState.department.trim(),
+          designation: currentFormState.designation.trim(),
+          role: currentFormState.role,
+          status: currentFormState.status,
+          password: currentFormState.password,
+          page_access: pageAccessArray,
+        };
+
+        if (editingId && !payload.password) {
+          delete payload.password;
+        }
       }
 
-      console.log('Submitting payload:', JSON.stringify(payload, null, 2));
 
-      if (isEditing && !hasPayloadChanged(payload)) {
+
+      if (isEditing && !hasNewImages && !hasPayloadChanged(payload)) {
         toast('No changes detected');
         setSubmitting(false);
         return;
@@ -285,8 +340,6 @@ const EmployeeCreate = () => {
         ? await updateEmployee(editingId, payload, token)
         : await createEmployee(payload, token);
 
-      console.log('Response received:', response);
-
       if (!response?.success) {
         toast.error(response?.message || 'Failed to create employee');
         return;
@@ -294,6 +347,8 @@ const EmployeeCreate = () => {
 
       toast.success(isEditing ? 'Employee updated successfully' : 'Employee created successfully');
       setForm(initialForm);
+      setProfileImgPreview(null);
+      setDocumentImgPreview(null);
       setEditingId(null);
       setShowForm(false);
       setShowEditModal(false);
@@ -316,7 +371,6 @@ const EmployeeCreate = () => {
 
     setEditingId(employeeId);
     const normalizedPageAccessValue = normalizePageAccessInput(employee?.page_access);
-    console.log('Editing employee - page_access:', employee?.page_access, 'normalized:', normalizedPageAccessValue);
 
     const formValues = {
       employee_code: employee?.employee_code ?? '',
@@ -329,7 +383,13 @@ const EmployeeCreate = () => {
       role: employee?.role ?? 'user',
       status: employee?.status ?? 'Active',
       password: '',
+      profile_img: employee?.profile_img || null,
+      document_img: employee?.document_img || null,
     };
+
+    // Set preview images if they exist
+    setProfileImgPreview(employee?.profile_img || null);
+    setDocumentImgPreview(employee?.document_img || null);
 
     setOriginalPayload({
       employee_code: formValues.employee_code,
@@ -342,6 +402,8 @@ const EmployeeCreate = () => {
       status: formValues.status,
       password: '',
       page_access: [...normalizedPageAccessValue],
+      profile_img: formValues.profile_img,
+      document_img: formValues.document_img,
     });
 
     setForm(formValues);
@@ -374,6 +436,8 @@ const EmployeeCreate = () => {
 
   const handleReset = () => {
     setForm(initialForm);
+    setProfileImgPreview(null);
+    setDocumentImgPreview(null);
     setEditingId(null);
     setOriginalPayload(null);
   };
@@ -382,6 +446,8 @@ const EmployeeCreate = () => {
     setShowEditModal(false);
     setEditingId(null);
     setForm(initialForm);
+    setProfileImgPreview(null);
+    setDocumentImgPreview(null);
     setOriginalPayload(null);
   };
 
@@ -413,7 +479,8 @@ const EmployeeCreate = () => {
             value={form.employee_code}
             onChange={handleChange}
             required
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            readOnly={isEditing}
+            className={`w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             placeholder="S01111"
           />
         </div>
@@ -525,6 +592,48 @@ const EmployeeCreate = () => {
         )}
 
         <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="profile_img">Profile Image</label>
+          <input
+            id="profile_img"
+            name="profile_img"
+            type="file"
+            accept="image/*"
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          />
+          {profileImgPreview && (
+            <div className="mt-2">
+              <img
+                src={profileImgPreview}
+                alt="Profile preview"
+                className="h-24 w-24 rounded-lg object-cover border border-gray-300"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="document_img">Document Image</label>
+          <input
+            id="document_img"
+            name="document_img"
+            type="file"
+            accept="image/*"
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          />
+          {documentImgPreview && (
+            <div className="mt-2">
+              <img
+                src={documentImgPreview}
+                alt="Document preview"
+                className="h-24 w-24 rounded-lg object-cover border border-gray-300"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="page_access">Page Access</label>
           <div className="relative" ref={dropdownRef}>
             <button
@@ -537,12 +646,12 @@ const EmployeeCreate = () => {
                   ? `${selectedPageAccess.length} page(s) selected`
                   : 'Select pages...'}
               </span>
-              <ChevronDown 
-                size={16} 
-                className={`ml-2 flex-shrink-0 transform transition-transform ${showPageAccessDropdown ? 'rotate-180' : ''}`} 
+              <ChevronDown
+                size={16}
+                className={`ml-2 flex-shrink-0 transform transition-transform ${showPageAccessDropdown ? 'rotate-180' : ''}`}
               />
             </button>
-            
+
             {showPageAccessDropdown && (
               <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-300 bg-white shadow-lg max-h-60 overflow-auto">
                 <div className="p-2 space-y-1">
@@ -568,7 +677,7 @@ const EmployeeCreate = () => {
               </div>
             )}
           </div>
-          
+
           {selectedPageAccess.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {selectedPageAccess.map((path) => {
@@ -656,10 +765,10 @@ const EmployeeCreate = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setShowForm((prev) => !prev);
-                  if (!prev) {
+                  if (!showForm) {
                     handleReset();
                   }
+                  setShowForm((prev) => !prev);
                 }}
                 className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-md transition hover:bg-indigo-700"
               >
@@ -687,11 +796,11 @@ const EmployeeCreate = () => {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
               {/* Backdrop */}
-              <div 
+              <div
                 className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
                 onClick={handleCloseModal}
               ></div>
-              
+
               {/* Modal */}
               <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-xl">
                 {/* Modal Header */}

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Building, Edit3, Mail, Phone, Save, User, X, Hash, Shield, Briefcase, CheckCircle2 } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Building, Edit3, Mail, Phone, Save, User, X, Hash, Shield, Briefcase, CheckCircle2, Camera, FileText, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getEmployeeById, updateEmployee } from '../api/employeeApi';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +11,15 @@ const MyProfile = () => {
   const [loading, setLoading] = useState(true);
   const { user, token } = useAuth();
 
+
+  const [selectedProfileImg, setSelectedProfileImg] = useState(null);
+  const [selectedDocumentImg, setSelectedDocumentImg] = useState(null);
+  const [previewProfileImg, setPreviewProfileImg] = useState(null);
+  const [previewDocumentImg, setPreviewDocumentImg] = useState(null);
+
+  const profileInputRef = useRef(null);
+  const documentInputRef = useRef(null);
+
   const fetchProfile = async () => {
     try {
       if (!token || !user?.id) {
@@ -19,12 +28,23 @@ const MyProfile = () => {
 
       const response = await getEmployeeById(user.id, token);
       const profile = response?.data;
+      // console.log(profile)
       if (!profile) {
         throw new Error('No profile data found');
       }
 
       setProfileData(profile);
       setFormData(profile);
+
+      // Set initial previews
+      if (profile.profile_img) {
+        // Handle both full URLs and relative paths if needed
+        setPreviewProfileImg(profile.profile_img);
+      }
+      if (profile.document_img) {
+        setPreviewDocumentImg(profile.document_img);
+      }
+
     } catch (error) {
       console.error('Error fetching profile data:', error);
       toast.error(`Failed to load profile data: ${error.message}`);
@@ -45,6 +65,30 @@ const MyProfile = () => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+      setSelectedProfileImg(file);
+      setPreviewProfileImg(URL.createObjectURL(file));
+    }
+  };
+
+  const handleDocumentChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Document size should be less than 5MB');
+        return;
+      }
+      setSelectedDocumentImg(file);
+      setPreviewDocumentImg(URL.createObjectURL(file));
+    }
+  };
+
 
   const handleSave = async () => {
     try {
@@ -53,21 +97,40 @@ const MyProfile = () => {
         throw new Error('Please login to update your profile');
       }
 
-      const payload = {
-        ...profileData,
-        email: formData.email || '',
-        mobile_number: formData.mobile_number || '',
-        department: formData.department || '',
-        designation: formData.designation || ''
-      };
+      // Create FormData to handle file uploads
+      const submitData = new FormData();
 
-      const response = await updateEmployee(profileData.id, payload, token);
+      // Append basic fields
+      submitData.append('email', formData.email || '');
+      submitData.append('mobile_number', formData.mobile_number || '');
+      // Include other fields needed for update, even if readonly, if the API expects them
+      // Or better, only include what changes. But based on previous code it was sending everything.
+      // Let's send the text fields that are editable + required ones.
+      // The backend service seems to merge so we might just send what we have.
+
+      // Append files if selected
+      if (selectedProfileImg) {
+        submitData.append('profile_img', selectedProfileImg);
+      }
+      if (selectedDocumentImg) {
+        submitData.append('document_img', selectedDocumentImg);
+      }
+
+      const response = await updateEmployee(profileData.id, submitData, token);
       if (!response?.success) {
         throw new Error(response?.message || 'Failed to update profile');
       }
 
-      setProfileData(response?.data || payload);
-      setFormData(response?.data || payload);
+      const updatedProfile = response?.data || formData; // Fallback
+      setProfileData(updatedProfile);
+      setFormData(updatedProfile);
+
+      // Update previews/state
+      if (updatedProfile.profile_img) setPreviewProfileImg(updatedProfile.profile_img);
+      if (updatedProfile.document_img) setPreviewDocumentImg(updatedProfile.document_img);
+      setSelectedProfileImg(null);
+      setSelectedDocumentImg(null);
+
       toast.success('Profile updated successfully!');
       setIsEditing(false);
     } catch (error) {
@@ -80,6 +143,10 @@ const MyProfile = () => {
 
   const handleCancel = () => {
     setFormData(profileData || {});
+    setPreviewProfileImg(profileData?.profile_img || null);
+    setPreviewDocumentImg(profileData?.document_img || null);
+    setSelectedProfileImg(null);
+    setSelectedDocumentImg(null);
     setIsEditing(false);
   };
 
@@ -159,8 +226,41 @@ const MyProfile = () => {
           <div className="lg:col-span-1">
             <div className="rounded-2xl bg-white p-4 sm:p-6 lg:p-8 shadow-xl border border-gray-100">
               <div className="text-center">
-                <div className="mx-auto flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg mb-4 sm:mb-6">
-                  <User size={48} className="text-white sm:w-16 sm:h-16" />
+                <div className="relative mx-auto h-24 w-24 sm:h-32 sm:w-32 mb-4 sm:mb-6">
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg overflow-hidden">
+                    {previewProfileImg ? (
+                      <img
+                        src={previewProfileImg}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          console.error('Error loading profile image:', previewProfileImg);
+                          // e.target.style.display = 'none'; 
+                        }}
+                      />
+                    ) : (
+                      <User size={48} className="text-white sm:w-16 sm:h-16" />
+                    )}
+                  </div>
+
+                  {isEditing && (
+                    <>
+                      <button
+                        onClick={() => profileInputRef.current?.click()}
+                        className="absolute bottom-0 right-0 p-2 bg-indigo-600 rounded-full text-white shadow-lg hover:bg-indigo-700 transition-colors z-10"
+                        title="Upload Profile Picture"
+                      >
+                        <Camera size={16} />
+                      </button>
+                      <input
+                        type="file"
+                        ref={profileInputRef}
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </>
+                  )}
                 </div>
                 <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2">{profileData.employee_name || '-'}</h2>
                 <p className="text-sm sm:text-base text-gray-600 mb-3">{profileData.designation || 'Not specified'}</p>
@@ -311,6 +411,77 @@ const MyProfile = () => {
                     Department
                   </label>
                   <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.department || 'Not assigned'}</p>
+                </div>
+              </div>
+            </div>
+            {/* Document Upload Section */}
+            <div className="rounded-2xl bg-white p-4 sm:p-6 lg:p-8 shadow-xl border border-gray-100">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                <div className="p-2 rounded-lg bg-emerald-100">
+                  <FileText size={18} className="text-emerald-600 sm:w-5 sm:h-5" />
+                </div>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900">Documents</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Aadhar Card / Identity Document
+                    </label>
+
+                    {previewDocumentImg ? (
+                      <div className="relative w-full max-w-xs h-40 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+                        <img
+                          src={previewDocumentImg}
+                          alt="Document"
+                          className="h-full w-full object-contain"
+                          onError={(e) => {
+                            console.error('Error loading document image:', previewDocumentImg);
+                            // e.target.style.display = 'none'; 
+                          }}
+                        />
+                        {isEditing && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={() => documentInputRef.current?.click()}
+                              className="p-2 bg-white rounded-full text-gray-900"
+                            >
+                              <Edit3 size={20} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-full max-w-xs h-40 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center text-gray-400">
+                        <FileText size={32} />
+                        <span className="text-xs mt-2">No document uploaded</span>
+                      </div>
+                    )}
+
+                    {isEditing && (
+                      <div className="mt-3">
+                        <input
+                          type="file"
+                          ref={documentInputRef}
+                          accept="image/*"
+                          onChange={handleDocumentChange}
+                          className="hidden"
+                        />
+                        {!previewDocumentImg && (
+                          <button
+                            type="button"
+                            onClick={() => documentInputRef.current?.click()}
+                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+                          >
+                            <Upload size={16} />
+                            Upload Document
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

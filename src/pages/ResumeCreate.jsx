@@ -154,7 +154,7 @@ const ResumeCreate = () => {
           <div className="overflow-hidden rounded-2xl bg-white shadow-xl">
             {/* Card Header */}
             <div className="border-b bg-gradient-to-r from-indigo-600 to-indigo-500 px-5 py-4 sm:px-8 sm:py-5">
-              <h3 className="text-lg sm:text-xl font-semibold text-white">Resume Requests</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-white">MainPower Requests</h3>
               <p className="mt-1 text-sm text-indigo-100">
                 Select a request to submit resume.
               </p>
@@ -215,22 +215,13 @@ const ResumeCreate = () => {
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                           {request.requester_department || '-'}
                         </td>
-                        {/* <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            request.request_status === 'Open' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {request.request_status || 'Open'}
-                          </span>
-                        </td> */}
                         <td className="px-4 py-3 whitespace-nowrap text-sm">
                           <button
                             onClick={() => handleResumeClick(request)}
                             className="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition"
                           >
                             <FileText size={14} className="mr-1" />
-                            Resume
+                            Process
                           </button>
                         </td>
                       </tr>
@@ -255,7 +246,7 @@ const ResumeCreate = () => {
       <div className="border-b bg-gradient-to-r from-indigo-600 to-indigo-500 px-5 py-4 sm:px-8 sm:py-5">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg sm:text-xl font-semibold text-white">Resume</h3>
+            <h3 className="text-lg sm:text-xl font-semibold text-white">MainPower</h3>
             <p className="mt-1 text-sm text-indigo-100">
               Apply for job — fill your details carefully.
             </p>
@@ -476,49 +467,6 @@ const ResumeCreate = () => {
               placeholder="Career growth"
             />
           </div>
-
-         {/* <div>
-  <label className="text-sm font-medium text-gray-700" htmlFor="interviewer_planned_at">
-    Interview Planned Date & Time
-  </label>
-  <input
-    id="interviewer_planned_at"
-    name="interviewer_planned_at"
-    type="datetime-local"
-    value={form.interviewer_planned_at}
-    onChange={handleChange}
-    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-  />
-</div>
-
-<div>
-  <label className="text-sm font-medium text-gray-700" htmlFor="interviewer_actual_at">
-    Interview Actual Date & Time
-  </label>
-  <input
-    id="interviewer_actual_at"
-    name="interviewer_actual_at"
-    type="datetime-local"
-    value={form.interviewer_actual_at}
-    onChange={handleChange}
-    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-  />
-</div>
-
-
-          <div>
-            <label className="text-sm font-medium text-gray-700" htmlFor="interviewer_status">
-              Interviewer Status
-            </label>
-            <input
-              id="interviewer_status"
-              name="interviewer_status"
-              value={form.interviewer_status}
-              onChange={handleChange}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-              placeholder="Scheduled"
-            />
-          </div> */}
 
         </div>
 
