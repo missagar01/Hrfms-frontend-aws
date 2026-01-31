@@ -108,6 +108,7 @@ const LeaveManagerApproval = () => {
       setItems([]);
       return;
     }
+    
 
     setLoading(true);
     try {
