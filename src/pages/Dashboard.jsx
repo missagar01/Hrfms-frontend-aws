@@ -36,6 +36,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
 import { getDashboardStats } from '../api/dashboardApi';
 
 const STATUS_COLORS = ['#10B981', '#EF4444', '#3B82F6', '#6366F1', '#F59E0B', '#EC4899', '#8B5CF6'];
