@@ -51,6 +51,7 @@ const EmployeeCreate = () => {
   const [originalPayload, setOriginalPayload] = useState(null);
   const [searchName, setSearchName] = useState('');
   const [searchDepartment, setSearchDepartment] = useState('');
+  const [searchCode, setSearchCode] = useState('');
   const [showPageAccessDropdown, setShowPageAccessDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const [profileImgPreview, setProfileImgPreview] = useState(null);
@@ -267,6 +268,23 @@ const EmployeeCreate = () => {
 
     setSubmitting(true);
     try {
+      // Check for duplicate employee_code
+      const codeToCheck = form.employee_code.trim().toLowerCase();
+      if (codeToCheck) {
+        const duplicateEmployee = employees.find(emp =>
+          (emp?.employee_code ?? '').trim().toLowerCase() === codeToCheck
+        );
+
+        if (duplicateEmployee) {
+          const isSelf = isEditing && getEmployeeId(duplicateEmployee) === editingId;
+          if (!isSelf) {
+            toast.error(`Employee code "${form.employee_code}" already exists.`);
+            setSubmitting(false);
+            return;
+          }
+        }
+      }
+
       // Get the latest form state directly to ensure we have the current page_access
       const currentFormState = { ...form };
 
@@ -454,6 +472,7 @@ const EmployeeCreate = () => {
   const filteredEmployees = useMemo(() => {
     const nameTerm = searchName.trim().toLowerCase();
     const deptTerm = searchDepartment.trim().toLowerCase();
+    const codeTerm = searchCode.trim().toLowerCase();
     return employees.filter((employee) => {
       if (nameTerm && !(employee?.employee_name ?? '').toLowerCase().includes(nameTerm)) {
         return false;
@@ -461,11 +480,32 @@ const EmployeeCreate = () => {
       if (deptTerm && !(employee?.department ?? '').toLowerCase().includes(deptTerm)) {
         return false;
       }
+      if (codeTerm && !(employee?.employee_code ?? '').toLowerCase().includes(codeTerm)) {
+        return false;
+      }
       return true;
     });
-  }, [employees, searchName, searchDepartment]);
+  }, [employees, searchName, searchDepartment, searchCode]);
 
   const selectedPageAccess = Array.isArray(form.page_access) ? form.page_access : [];
+
+  // Check for duplicate code in real-time
+  const duplicateCodeWarning = useMemo(() => {
+    if (!form.employee_code || !form.employee_code.trim()) return '';
+
+    const codeToCheck = form.employee_code.trim().toLowerCase();
+    const duplicate = employees.find(emp =>
+      (emp?.employee_code ?? '').trim().toLowerCase() === codeToCheck
+    );
+
+    if (duplicate) {
+      const isSelf = isEditing && getEmployeeId(duplicate) === editingId;
+      if (!isSelf) {
+        return 'Employee code already exists!'; // Message as requested
+      }
+    }
+    return '';
+  }, [form.employee_code, employees, isEditing, editingId]);
 
   // Render form component (used in both inline and modal)
   const renderForm = () => (
@@ -480,9 +520,17 @@ const EmployeeCreate = () => {
             onChange={handleChange}
             required
             readOnly={isEditing}
-            className={`w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            className={`w-full rounded-lg border px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 ${duplicateCodeWarning
+              ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+              : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-200'
+              } ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             placeholder="S01111"
           />
+          {duplicateCodeWarning && (
+            <p className="mt-1 text-xs text-red-600 font-medium animate-pulse">
+              {duplicateCodeWarning}
+            </p>
+          )}
         </div>
 
         <div>
@@ -838,7 +886,18 @@ const EmployeeCreate = () => {
             </div>
 
             {/* Search Filters */}
-            <div className="mb-4 grid gap-3 sm:grid-cols-2">
+            <div className="mb-4 grid gap-3 sm:grid-cols-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1" htmlFor="searchCode">Search code</label>
+                <input
+                  id="searchCode"
+                  name="searchCode"
+                  value={searchCode}
+                  onChange={(event) => setSearchCode(event.target.value)}
+                  placeholder="S01111"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
+              </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1" htmlFor="searchName">Search name</label>
                 <input
