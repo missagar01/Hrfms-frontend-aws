@@ -552,6 +552,7 @@ const EmployeeCreate = () => {
             id="email"
             name="email"
             type="email"
+            required={false}
             value={form.email}
             onChange={handleChange}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
