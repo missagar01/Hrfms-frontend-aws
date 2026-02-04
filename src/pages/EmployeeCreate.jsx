@@ -4,6 +4,7 @@ import { Pencil, Trash2, UserPlus, X, ChevronDown } from 'lucide-react';
 import { createEmployee, deleteEmployee, getEmployees, updateEmployee } from '../api/employeeApi';
 import { useAuth } from '../context/AuthContext';
 
+
 // Available routes for page access
 const availableRoutes = [
   { path: '/', label: 'Dashboard' },
