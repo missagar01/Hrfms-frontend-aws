@@ -101,8 +101,8 @@ const MyProfile = () => {
       const submitData = new FormData();
 
       // Append basic fields
-      submitData.append('email', formData.email || '');
-      submitData.append('mobile_number', formData.mobile_number || '');
+      submitData.append('email_id', formData.email_id || '');
+      submitData.append('number', formData.number || '');
       // Include other fields needed for update, even if readonly, if the API expects them
       // Or better, only include what changes. But based on previous code it was sending everything.
       // Let's send the text fields that are editable + required ones.
@@ -302,14 +302,14 @@ const MyProfile = () => {
                   {isEditing ? (
                     <input
                       type="email"
-                      name="email"
-                      value={formData.email || ''}
+                      name="email_id"
+                      value={formData.email_id || ''}
                       onChange={handleInputChange}
                       className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition"
                       placeholder="your.email@example.com"
                     />
                   ) : (
-                    <p className="text-sm sm:text-base text-gray-800 font-medium break-words">{profileData.email || '-'}</p>
+                    <p className="text-sm sm:text-base text-gray-800 font-medium break-words">{profileData.email_id || '-'}</p>
                   )}
                 </div>
 
@@ -321,14 +321,14 @@ const MyProfile = () => {
                   {isEditing ? (
                     <input
                       type="tel"
-                      name="mobile_number"
-                      value={formData.mobile_number || ''}
+                      name="number"
+                      value={formData.number || ''}
                       onChange={handleInputChange}
                       className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition"
                       placeholder="+91 1234567890"
                     />
                   ) : (
-                    <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.mobile_number || '-'}</p>
+                    <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.number || '-'}</p>
                   )}
                 </div>
 

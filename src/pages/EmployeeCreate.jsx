@@ -28,8 +28,8 @@ const availableRoutes = [
 const initialForm = {
   employee_id: '',
   user_name: '',
-  email: '',
-  mobile_number: '',
+  email_id: '',
+  number: '',
   department: '',
   designation: '',
   role: 'user',
@@ -203,8 +203,8 @@ const EmployeeCreate = () => {
     const payload = {
       employee_id: form.employee_id.trim(),
       user_name: form.user_name.trim(),
-      email: form.email.trim(),
-      mobile_number: form.mobile_number.trim(),
+      email_id: form.email_id.trim(),
+      number: form.number.trim(),
       department: form.department.trim(),
       designation: form.designation.trim(),
       role: form.role,
@@ -228,8 +228,8 @@ const EmployeeCreate = () => {
     const keysToCompare = [
       'employee_id',
       'user_name',
-      'email',
-      'mobile_number',
+      'email_id',
+      'number',
       'department',
       'designation',
       'role',
@@ -307,8 +307,8 @@ const EmployeeCreate = () => {
         payload = new FormData();
         payload.append('employee_id', currentFormState.employee_id.trim());
         payload.append('user_name', currentFormState.user_name.trim());
-        payload.append('email', currentFormState.email.trim());
-        payload.append('mobile_number', currentFormState.mobile_number.trim());
+        payload.append('email_id', currentFormState.email_id.trim());
+        payload.append('number', currentFormState.number.trim());
         payload.append('department', currentFormState.department.trim());
         payload.append('designation', currentFormState.designation.trim());
         payload.append('role', currentFormState.role);
@@ -332,8 +332,8 @@ const EmployeeCreate = () => {
         payload = {
           employee_id: currentFormState.employee_id.trim(),
           user_name: currentFormState.user_name.trim(),
-          email: currentFormState.email.trim(),
-          mobile_number: currentFormState.mobile_number.trim(),
+          email_id: currentFormState.email_id.trim(),
+          number: currentFormState.number.trim(),
           department: currentFormState.department.trim(),
           designation: currentFormState.designation.trim(),
           role: currentFormState.role,
@@ -394,8 +394,8 @@ const EmployeeCreate = () => {
     const formValues = {
       employee_id: employee?.employee_id ?? '',
       user_name: employee?.user_name ?? '',
-      email: employee?.email ?? '',
-      mobile_number: employee?.mobile_number ?? '',
+      email_id: employee?.email_id ?? '',
+      number: employee?.number ?? '',
       department: employee?.department ?? '',
       designation: employee?.designation ?? '',
       page_access: normalizedPageAccessValue,
@@ -413,8 +413,8 @@ const EmployeeCreate = () => {
     setOriginalPayload({
       employee_id: formValues.employee_id,
       user_name: formValues.user_name,
-      email: formValues.email,
-      mobile_number: formValues.mobile_number,
+      email_id: formValues.email_id,
+      number: formValues.number,
       department: formValues.department,
       designation: formValues.designation,
       role: formValues.role,
@@ -548,13 +548,13 @@ const EmployeeCreate = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email_id">Email</label>
           <input
-            id="email"
-            name="email"
+            id="email_id"
+            name="email_id"
             type="email"
             required={false}
-            value={form.email}
+            value={form.email_id}
             onChange={handleChange}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             placeholder="rupesh@gmail.com"
@@ -562,11 +562,11 @@ const EmployeeCreate = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="mobile_number">Mobile Number</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="number">Mobile Number</label>
           <input
-            id="mobile_number"
-            name="mobile_number"
-            value={form.mobile_number}
+            id="number"
+            name="number"
+            value={form.number}
             onChange={handleChange}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             placeholder="81034dd174"

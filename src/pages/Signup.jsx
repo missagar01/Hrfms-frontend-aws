@@ -7,8 +7,8 @@ import { createEmployee, getDepartments, getDesignations } from '../api/employee
 const initialForm = {
   employee_id: '',
   user_name: '',
-  email: '',
-  mobile_number: '',
+  email_id: '',
+  number: '',
   department: '',
   designation: '',
   role: 'User',
@@ -128,12 +128,12 @@ const Signup = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-indigo-700" htmlFor="email">Email</label>
+              <label className="text-sm font-medium text-indigo-700" htmlFor="email_id">Email</label>
               <input
-                id="email"
-                name="email"
+                id="email_id"
+                name="email_id"
                 type="email"
-                value={form.email}
+                value={form.email_id}
                 onChange={handleChange}
                 required
                 className="mt-2 w-full rounded-lg border border-indigo-200 bg-white/70 px-3 py-2 text-sm text-indigo-800 shadow-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -142,11 +142,11 @@ const Signup = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-indigo-700" htmlFor="mobile_number">Mobile Number</label>
+              <label className="text-sm font-medium text-indigo-700" htmlFor="number">Mobile Number</label>
               <input
-                id="mobile_number"
-                name="mobile_number"
-                value={form.mobile_number}
+                id="number"
+                name="number"
+                value={form.number}
                 onChange={handleChange}
                 required
                 className="mt-2 w-full rounded-lg border border-indigo-200 bg-white/70 px-3 py-2 text-sm text-indigo-800 shadow-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
