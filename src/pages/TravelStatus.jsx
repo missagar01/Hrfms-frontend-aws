@@ -19,7 +19,8 @@ const TravelStatus = () => {
     [tickets, employeeCode]
   );
 
-  
+
+
   const ticketStats = useMemo(() => {
     const total = filteredTickets.length;
     const booked = filteredTickets.filter(
@@ -198,7 +199,7 @@ const TravelStatus = () => {
                     </tr>
                   );
                 })}
-                { !loading && filteredTickets.length === 0 && (
+                {!loading && filteredTickets.length === 0 && (
                   <tr>
                     <td colSpan="9" className="px-4 py-6 text-center text-gray-500">
                       No tickets found.
