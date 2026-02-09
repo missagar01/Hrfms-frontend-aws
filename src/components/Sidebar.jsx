@@ -266,7 +266,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
             </div>
             {/* Show user info in mobile view regardless of collapsed state */}
             <div className={`${isCollapsed ? 'hidden' : 'block'} md:block`}>
-              <p className="text-sm font-medium text-white">{user?.employee_name || user?.Name || user?.Username || 'Guest'}</p>
+              <p className="text-sm font-medium text-white">{user?.user_name || user?.employee_name || user?.Name || user?.Username || 'Guest'}</p>
               <p className="text-xs text-white">{isAdmin ? 'Administrator' : 'Employee'}</p>
 
             </div>
