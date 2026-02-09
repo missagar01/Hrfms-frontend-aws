@@ -44,7 +44,7 @@ const LeaveHrApproval = () => {
       const payload = {
         hr_approval: 'Approved',
         request_status: 'Approved',
-        approval_hr: user?.employee_code || user?.employeeCode || null,
+        approval_hr: user?.employee_id || user?.employeeCode || null,
       };
       const response = await updateLeaveRequest(requestId, payload, token);
       if (!response?.success) {
@@ -108,15 +108,15 @@ const LeaveHrApproval = () => {
                   {!loading && items.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-2 sm:px-4 py-3">
-                        <div className="font-medium text-gray-900 break-words">{item.employee_name || '-'}</div>
+                        <div className="font-medium text-gray-900 break-words">{item.user_name || '-'}</div>
                         <div className="text-xs text-gray-500 break-words">{item.designation || '-'}</div>
                       </td>
                       <td className="px-2 sm:px-4 py-3 break-words">{item.department || '-'}</td>
                       <td className="px-2 sm:px-4 py-3 whitespace-nowrap">{item.from_date ? new Date(item.from_date).toLocaleDateString() : '-'}</td>
                       <td className="px-2 sm:px-4 py-3 whitespace-nowrap">{item.to_date ? new Date(item.to_date).toLocaleDateString() : '-'}</td>
                       <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.reason || '-'}</td>
-                        <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.mobilenumber || '-'}</td>
-                          <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.urgent_mobilenumber || '-'}</td>
+                      <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.mobilenumber || '-'}</td>
+                      <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.urgent_mobilenumber || '-'}</td>
                       <td className="px-2 sm:px-4 py-3 break-words">{item.approved_by || '-'}</td>
                       <td className="px-2 sm:px-4 py-3">{item.hr_approval || '-'}</td>
                       <td className="px-2 sm:px-4 py-3">{item.hr_approval || '-'}</td>

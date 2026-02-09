@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
     pageAccess: null,
     loginTime: null,
     pass: null,
+    systemAccess: null,
     isAuthenticated: false,
     isInitializing: true,
   });
@@ -45,6 +46,7 @@ export const AuthProvider = ({ children }) => {
         pageAccess: parsed?.pageAccess ?? parsed?.page_access ?? null,
         loginTime: parsed?.loginTime ?? parsed?.login_time ?? null,
         pass: parsed?.pass ?? parsed?.Pass ?? null,
+        systemAccess: parsed?.systemAccess ?? parsed?.system_access ?? null,
         isAuthenticated: Boolean(parsed?.token),
         isInitializing: false,
       });
@@ -56,16 +58,22 @@ export const AuthProvider = ({ children }) => {
   const login = (user, token) => {
     const normalizedUser = user
       ? {
-          ...user,
-          designation: getFieldValue(user, ['designation', 'Designation']),
-          department: getFieldValue(user, ['department', 'Department']),
-        }
+        ...user,
+        designation: getFieldValue(user, ['designation', 'Designation']),
+        department: getFieldValue(user, ['department', 'Department']),
+      }
       : null;
     const pageAccess = getFieldValue(normalizedUser, [
       'page_access',
       'Page_Access',
       'pageAccess',
       'PageAccess',
+    ]);
+    const systemAccess = getFieldValue(normalizedUser, [
+      'system_access',
+      'System_Access',
+      'systemAccess',
+      'SystemAccess',
     ]);
     const loginTime =
       getFieldValue(normalizedUser, ['login_time', 'LoginTime', 'loginTime']) ??
@@ -76,6 +84,7 @@ export const AuthProvider = ({ children }) => {
       user: normalizedUser,
       token,
       pageAccess,
+      systemAccess,
       loginTime,
       pass: passValue,
       isAuthenticated: true,
@@ -88,6 +97,7 @@ export const AuthProvider = ({ children }) => {
         user: normalizedUser,
         token,
         pageAccess,
+        systemAccess,
         loginTime,
         pass: passValue,
       })
@@ -100,6 +110,7 @@ export const AuthProvider = ({ children }) => {
       user: null,
       token: null,
       pageAccess: null,
+      systemAccess: null,
       loginTime: null,
       pass: null,
       isAuthenticated: false,
@@ -126,3 +137,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+

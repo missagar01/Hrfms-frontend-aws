@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 const Header = ({ children }) => {
   const { user } = useAuth();
-  const displayName = user?.employee_name || user?.name || user?.email || 'Guest';
+  const displayName = user?.user_name || user?.name || user?.email || 'Guest';
   const displayRole = user?.role || 'User';
 
   return (

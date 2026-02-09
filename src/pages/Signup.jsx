@@ -5,8 +5,8 @@ import toast from 'react-hot-toast';
 import { createEmployee, getDepartments, getDesignations } from '../api/employeeApi';
 
 const initialForm = {
-  employee_code: '',
-  employee_name: '',
+  employee_id: '',
+  user_name: '',
   email: '',
   mobile_number: '',
   department: '',
@@ -102,11 +102,11 @@ const Signup = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
-              <label className="text-sm font-medium text-indigo-700" htmlFor="employee_code">Employee Code</label>
+              <label className="text-sm font-medium text-indigo-700" htmlFor="employee_id">Employee ID</label>
               <input
-                id="employee_code"
-                name="employee_code"
-                value={form.employee_code}
+                id="employee_id"
+                name="employee_id"
+                value={form.employee_id}
                 onChange={handleChange}
                 required
                 className="mt-2 w-full rounded-lg border border-indigo-200 bg-white/70 px-3 py-2 text-sm text-indigo-800 shadow-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -115,11 +115,11 @@ const Signup = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-indigo-700" htmlFor="employee_name">Employee Name</label>
+              <label className="text-sm font-medium text-indigo-700" htmlFor="user_name">User Name</label>
               <input
-                id="employee_name"
-                name="employee_name"
-                value={form.employee_name}
+                id="user_name"
+                name="user_name"
+                value={form.user_name}
                 onChange={handleChange}
                 required
                 className="mt-2 w-full rounded-lg border border-indigo-200 bg-white/70 px-3 py-2 text-sm text-indigo-800 shadow-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"

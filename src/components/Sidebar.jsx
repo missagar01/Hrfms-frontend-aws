@@ -27,12 +27,12 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   // Normalize page_access to array format
   const normalizePageAccess = (pageAccess) => {
     if (!pageAccess) return [];
-    
+
     // If it's already an array, return it
     if (Array.isArray(pageAccess)) {
       return pageAccess.map(route => route.trim());
     }
-    
+
     // If it's a string, try to parse as JSON first
     if (typeof pageAccess === 'string') {
       try {
@@ -51,25 +51,25 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           .filter(Boolean);
       }
     }
-    
+
     return [];
   };
 
   // Check if a route is allowed for employee
   const isRouteAllowed = (route) => {
     if (isAdmin) return true; // Admin can access all routes
-    
+
     const allowedRoutes = normalizePageAccess(pageAccess);
     if (allowedRoutes.length === 0) return false; // No page_access means no access
-    
+
     // Normalize the route to check (ensure it starts with /)
     const normalizedRoute = route.startsWith('/') ? route : `/${route}`;
-    
+
     // Check if route matches any allowed route (exact match)
     return allowedRoutes.some(allowedRoute => {
       // Normalize allowed route (ensure it starts with /)
       const normalizedAllowed = allowedRoute.startsWith('/') ? allowedRoute : `/${allowedRoute}`;
-      
+
       // Exact match
       return normalizedRoute === normalizedAllowed;
     });
@@ -104,8 +104,8 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   ], []);
 
   const hrEmployeeCodes = ['S08046', 'S09103'];
-  const canApproveHrLeaves = hrEmployeeCodes.includes(user?.employee_code || '');
-  
+  const canApproveHrLeaves = hrEmployeeCodes.includes(user?.employee_id || '');
+
   // Add HR Approvals to admin menu if user can approve HR leaves
   const finalAdminMenuItems = useMemo(() => {
     if (canApproveHrLeaves) {
@@ -118,24 +118,24 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const menuItems = useMemo(() => {
     // My Profile is always available to everyone and should be at the top
     const myProfileItem = { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' };
-    
+
     if (isAdmin) {
       // Admin sees all admin and employee menu items (remove duplicates by path)
       const allItems = [...finalAdminMenuItems, ...employeeMenuItems];
       const uniqueItems = [];
       const seenPaths = new Set();
-      
+
       // Always include My Profile at the top
       uniqueItems.push(myProfileItem);
       seenPaths.add('/my-profile');
-      
+
       for (const item of allItems) {
         if (!seenPaths.has(item.path)) {
           seenPaths.add(item.path);
           uniqueItems.push(item);
         }
       }
-      
+
       return uniqueItems;
     }
 

@@ -262,11 +262,11 @@ const MyProfile = () => {
                     </>
                   )}
                 </div>
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2">{profileData.employee_name || '-'}</h2>
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2">{profileData.user_name || '-'}</h2>
                 <p className="text-sm sm:text-base text-gray-600 mb-3">{profileData.designation || 'Not specified'}</p>
                 <div className="inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 sm:px-4 py-1.5 sm:py-2 mb-4">
                   <Hash size={14} className="text-indigo-600 sm:w-4 sm:h-4" />
-                  <span className="text-xs sm:text-sm font-semibold text-indigo-700">{profileData.employee_code || '-'}</span>
+                  <span className="text-xs sm:text-sm font-semibold text-indigo-700">{profileData.employee_id || '-'}</span>
                 </div>
                 <div className="mt-4 sm:mt-6 pt-4 border-t border-gray-200">
                   <div className="flex items-center justify-center gap-2 mb-2">
@@ -384,7 +384,7 @@ const MyProfile = () => {
                     <Hash size={14} className="text-purple-600 sm:w-4 sm:h-4" />
                     Employee Code
                   </label>
-                  <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.employee_code || '-'}</p>
+                  <p className="text-sm sm:text-base text-gray-800 font-medium">{profileData.employee_id || '-'}</p>
                 </div>
 
                 <div className="space-y-2">

@@ -26,8 +26,8 @@ const availableRoutes = [
 ];
 
 const initialForm = {
-  employee_code: '',
-  employee_name: '',
+  employee_id: '',
+  user_name: '',
   email: '',
   mobile_number: '',
   department: '',
@@ -201,8 +201,8 @@ const EmployeeCreate = () => {
 
 
     const payload = {
-      employee_code: form.employee_code.trim(),
-      employee_name: form.employee_name.trim(),
+      employee_id: form.employee_id.trim(),
+      user_name: form.user_name.trim(),
       email: form.email.trim(),
       mobile_number: form.mobile_number.trim(),
       department: form.department.trim(),
@@ -226,8 +226,8 @@ const EmployeeCreate = () => {
     }
 
     const keysToCompare = [
-      'employee_code',
-      'employee_name',
+      'employee_id',
+      'user_name',
       'email',
       'mobile_number',
       'department',
@@ -270,16 +270,16 @@ const EmployeeCreate = () => {
     setSubmitting(true);
     try {
       // Check for duplicate employee_code
-      const codeToCheck = form.employee_code.trim().toLowerCase();
+      const codeToCheck = form.employee_id.trim().toLowerCase();
       if (codeToCheck) {
         const duplicateEmployee = employees.find(emp =>
-          (emp?.employee_code ?? '').trim().toLowerCase() === codeToCheck
+          (emp?.employee_id ?? '').trim().toLowerCase() === codeToCheck
         );
 
         if (duplicateEmployee) {
           const isSelf = isEditing && getEmployeeId(duplicateEmployee) === editingId;
           if (!isSelf) {
-            toast.error(`Employee code "${form.employee_code}" already exists.`);
+            toast.error(`Employee ID "${form.employee_id}" already exists.`);
             setSubmitting(false);
             return;
           }
@@ -305,8 +305,8 @@ const EmployeeCreate = () => {
       if (hasNewImages) {
         // Use FormData for file uploads
         payload = new FormData();
-        payload.append('employee_code', currentFormState.employee_code.trim());
-        payload.append('employee_name', currentFormState.employee_name.trim());
+        payload.append('employee_id', currentFormState.employee_id.trim());
+        payload.append('user_name', currentFormState.user_name.trim());
         payload.append('email', currentFormState.email.trim());
         payload.append('mobile_number', currentFormState.mobile_number.trim());
         payload.append('department', currentFormState.department.trim());
@@ -330,8 +330,8 @@ const EmployeeCreate = () => {
       } else {
         // Use regular JSON payload
         payload = {
-          employee_code: currentFormState.employee_code.trim(),
-          employee_name: currentFormState.employee_name.trim(),
+          employee_id: currentFormState.employee_id.trim(),
+          user_name: currentFormState.user_name.trim(),
           email: currentFormState.email.trim(),
           mobile_number: currentFormState.mobile_number.trim(),
           department: currentFormState.department.trim(),
@@ -392,8 +392,8 @@ const EmployeeCreate = () => {
     const normalizedPageAccessValue = normalizePageAccessInput(employee?.page_access);
 
     const formValues = {
-      employee_code: employee?.employee_code ?? '',
-      employee_name: employee?.employee_name ?? '',
+      employee_id: employee?.employee_id ?? '',
+      user_name: employee?.user_name ?? '',
       email: employee?.email ?? '',
       mobile_number: employee?.mobile_number ?? '',
       department: employee?.department ?? '',
@@ -411,8 +411,8 @@ const EmployeeCreate = () => {
     setDocumentImgPreview(employee?.document_img || null);
 
     setOriginalPayload({
-      employee_code: formValues.employee_code,
-      employee_name: formValues.employee_name,
+      employee_id: formValues.employee_id,
+      user_name: formValues.user_name,
       email: formValues.email,
       mobile_number: formValues.mobile_number,
       department: formValues.department,
@@ -475,13 +475,13 @@ const EmployeeCreate = () => {
     const deptTerm = searchDepartment.trim().toLowerCase();
     const codeTerm = searchCode.trim().toLowerCase();
     return employees.filter((employee) => {
-      if (nameTerm && !(employee?.employee_name ?? '').toLowerCase().includes(nameTerm)) {
+      if (nameTerm && !(employee?.user_name ?? '').toLowerCase().includes(nameTerm)) {
         return false;
       }
       if (deptTerm && !(employee?.department ?? '').toLowerCase().includes(deptTerm)) {
         return false;
       }
-      if (codeTerm && !(employee?.employee_code ?? '').toLowerCase().includes(codeTerm)) {
+      if (codeTerm && !(employee?.employee_id ?? '').toLowerCase().includes(codeTerm)) {
         return false;
       }
       return true;
@@ -492,17 +492,17 @@ const EmployeeCreate = () => {
 
   // Check for duplicate code in real-time
   const duplicateCodeWarning = useMemo(() => {
-    if (!form.employee_code || !form.employee_code.trim()) return '';
+    if (!form.employee_id || !form.employee_id.trim()) return '';
 
-    const codeToCheck = form.employee_code.trim().toLowerCase();
+    const codeToCheck = form.employee_id.trim().toLowerCase();
     const duplicate = employees.find(emp =>
-      (emp?.employee_code ?? '').trim().toLowerCase() === codeToCheck
+      (emp?.employee_id ?? '').trim().toLowerCase() === codeToCheck
     );
 
     if (duplicate) {
       const isSelf = isEditing && getEmployeeId(duplicate) === editingId;
       if (!isSelf) {
-        return 'Employee code already exists!'; // Message as requested
+        return 'Employee ID already exists!'; // Message as requested
       }
     }
     return '';
@@ -513,11 +513,11 @@ const EmployeeCreate = () => {
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="employee_code">Employee Code</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="employee_id">Employee ID</label>
           <input
-            id="employee_code"
-            name="employee_code"
-            value={form.employee_code}
+            id="employee_id"
+            name="employee_id"
+            value={form.employee_id}
             onChange={handleChange}
             required
             readOnly={isEditing}
@@ -535,11 +535,11 @@ const EmployeeCreate = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="employee_name">Employee Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="user_name">User Name</label>
           <input
-            id="employee_name"
-            name="employee_name"
-            value={form.employee_name}
+            id="user_name"
+            name="user_name"
+            value={form.user_name}
             onChange={handleChange}
             required
             className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -970,9 +970,9 @@ const EmployeeCreate = () => {
                       {!tableLoading && !tableError && filteredEmployees.map((employee) => {
                         const employeeId = getEmployeeId(employee);
                         return (
-                          <tr key={employeeId ?? employee?.employee_code} className="hover:bg-gray-50">
-                            <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.employee_code || '-'}</td>
-                            <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium">{employee?.employee_name || '-'}</td>
+                          <tr key={employeeId ?? employee?.employee_id} className="hover:bg-gray-50">
+                            <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.employee_id || '-'}</td>
+                            <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium">{employee?.user_name || '-'}</td>
                             <td className="hidden sm:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.email || '-'}</td>
                             <td className="hidden md:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.mobile_number || '-'}</td>
                             <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.department || '-'}</td>

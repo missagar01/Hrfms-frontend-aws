@@ -11,7 +11,7 @@ const LeaveRequest = () => {
   const storedUser = rawUser ? JSON.parse(rawUser) : {};
   const user = useMemo(() => authUser || storedUser || {}, [authUser, storedUser]);
   const employeeCodeValue = useMemo(
-    () => authUser?.employee_code || storedUser?.employee_code || storedUser?.employeeId || employeeId || '',
+    () => authUser?.employee_id || storedUser?.employee_id || storedUser?.employeeId || employeeId || '',
     [authUser, storedUser, employeeId]
   );
   const employeeDbIdValue = useMemo(
@@ -19,7 +19,7 @@ const LeaveRequest = () => {
     [authUser, storedUser]
   );
   const employeeNameValue = useMemo(
-    () => authUser?.employee_name || storedUser?.employee_name || storedUser?.Name || '',
+    () => authUser?.user_name || storedUser?.user_name || storedUser?.Name || '',
     [authUser, storedUser]
   );
   const designationValue = useMemo(
@@ -117,10 +117,10 @@ const LeaveRequest = () => {
   // Check if a date falls within a specific month
   const isDateInMonth = (dateStr, monthIndex) => {
     if (!dateStr || monthIndex === 'all') return true;
-    
+
     const date = toDate(dateStr);
     if (!date) return false;
-    
+
     return date.getMonth() === parseInt(monthIndex);
   };
 
@@ -147,7 +147,7 @@ const LeaveRequest = () => {
           return String(item.employee_id ?? '') === String(employeeCodeValue);
         }
         if (employeeNameValue) {
-          return (item.employee_name || '') === employeeNameValue;
+          return (item.user_name || '') === employeeNameValue;
         }
         return true;
       });
@@ -161,7 +161,7 @@ const LeaveRequest = () => {
         return {
           id: item.id,
           employeeId: item.employee_id || '',
-          employeeName: item.employee_name || '',
+          employeeName: item.user_name || '',
           startDate,
           endDate,
           startDateRaw,
@@ -186,62 +186,62 @@ const LeaveRequest = () => {
     fetchLeaveData();
   }, [token, employeeCodeValue, employeeNameValue]);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!formData.employeeName || !formData.fromDate || !formData.toDate || !formData.reason) {
-    toast.error('Please fill all required fields');
-    return;
-  }
-
-  try {
-    setSubmitting(true);
-    if (!token) {
-      toast.error('Please login again before submitting leave request.');
+    if (!formData.employeeName || !formData.fromDate || !formData.toDate || !formData.reason) {
+      toast.error('Please fill all required fields');
       return;
     }
 
-    const fallbackEmployeeId = (() => {
-      const parsedEmployeeId = Number(formData.employeeId);
-      return Number.isNaN(parsedEmployeeId) ? formData.employeeId || null : parsedEmployeeId;
-    })();
-    const employeeIdValue = employeeDbIdValue || fallbackEmployeeId;
-    const reasonText = formData.reason;
+    try {
+      setSubmitting(true);
+      if (!token) {
+        toast.error('Please login again before submitting leave request.');
+        return;
+      }
 
-    const payload = {
-      employee_id: employeeIdValue,
-      employee_name: formData.employeeName || employeeNameValue,
-      designation: formData.designation || designationValue,
-      department: departmentValue,
-      from_date: formData.fromDate,
-      to_date: formData.toDate,
-      reason: reasonText,
-      mobilenumber: formData.mobilenumber ?? null,
-      urgent_mobilenumber: formData.urgent_mobilenumber ?? null,
-      request_status: 'Pending'
-    };
+      const fallbackEmployeeId = (() => {
+        const parsedEmployeeId = Number(formData.employeeId);
+        return Number.isNaN(parsedEmployeeId) ? formData.employeeId || null : parsedEmployeeId;
+      })();
+      const employeeIdValue = employeeDbIdValue || fallbackEmployeeId;
+      const reasonText = formData.reason;
 
-    const result = await apiRequest('/api/leave-requests', {
-      method: 'POST',
-      token,
-      body: payload,
-    });
+      const payload = {
+        employee_id: employeeIdValue,
+        user_name: formData.employeeName || employeeNameValue,
+        designation: formData.designation || designationValue,
+        department: departmentValue,
+        from_date: formData.fromDate,
+        to_date: formData.toDate,
+        reason: reasonText,
+        mobilenumber: formData.mobilenumber ?? null,
+        urgent_mobilenumber: formData.urgent_mobilenumber ?? null,
+        request_status: 'Pending'
+      };
 
-    if (result?.success) {
-      toast.success('Leave Request submitted successfully!');
-      setFormData({
-        employeeId: employeeCodeValue,
-        employeeName: employeeNameValue,
-        designation: designationValue,
-        fromDate: '',
-        toDate: '',
-        reason: '',
-        mobilenumber: '',
-        urgent_mobilenumber: ''
+      const result = await apiRequest('/api/leave-requests', {
+        method: 'POST',
+        token,
+        body: payload,
       });
-      setShowModal(false);
-      fetchLeaveData();
-    }
+
+      if (result?.success) {
+        toast.success('Leave Request submitted successfully!');
+        setFormData({
+          employeeId: employeeCodeValue,
+          employeeName: employeeNameValue,
+          designation: designationValue,
+          fromDate: '',
+          toDate: '',
+          reason: '',
+          mobilenumber: '',
+          urgent_mobilenumber: ''
+        });
+        setShowModal(false);
+        fetchLeaveData();
+      }
     } catch (error) {
       toast.error(error?.message || 'Something went wrong!');
     } finally {
@@ -365,13 +365,12 @@ const handleSubmit = async (e) => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
-                                className={`px-2 py-1 text-xs rounded-full ${
-                                  (request.status || "").toLowerCase() === "approved"
-                                    ? "bg-green-100 text-green-800"
-                                    : (request.status || "").toLowerCase() === "rejected"
+                                className={`px-2 py-1 text-xs rounded-full ${(request.status || "").toLowerCase() === "approved"
+                                  ? "bg-green-100 text-green-800"
+                                  : (request.status || "").toLowerCase() === "rejected"
                                     ? "bg-red-100 text-red-800"
                                     : "bg-yellow-100 text-yellow-800"
-                                }`}
+                                  }`}
                               >
                                 {request.status}
                               </span>
@@ -516,16 +515,16 @@ const handleSubmit = async (e) => {
                   />
                 </div>
 
-              {formData.fromDate && formData.toDate && (
-                <div className="md:col-span-2 bg-blue-50 p-3 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    Total Days:{" "}
-                    <span className="font-semibold">
-                      {calculateDays(formData.fromDate, formData.toDate)}
-                    </span>
-                  </p>
-                </div>
-              )}
+                {formData.fromDate && formData.toDate && (
+                  <div className="md:col-span-2 bg-blue-50 p-3 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      Total Days:{" "}
+                      <span className="font-semibold">
+                        {calculateDays(formData.fromDate, formData.toDate)}
+                      </span>
+                    </p>
+                  </div>
+                )}
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -543,48 +542,47 @@ const handleSubmit = async (e) => {
                 </div>
 
                 <div className="md:col-span-2 flex justify-end space-x-2 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={`px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 min-h-[42px] flex items-center justify-center ${
-                    submitting ? "opacity-75 cursor-not-allowed" : ""
-                  }`}
-                  disabled={submitting}
-                >
-                  {submitting ? (
-                    <div className="flex items-center">
-                      <svg
-                        className="animate-spin h-4 w-4 text-white mr-2"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      <span>Submitting...</span>
-                    </div>
-                  ) : (
-                    "Submit Request"
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={`px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 min-h-[42px] flex items-center justify-center ${submitting ? "opacity-75 cursor-not-allowed" : ""
+                      }`}
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <div className="flex items-center">
+                        <svg
+                          className="animate-spin h-4 w-4 text-white mr-2"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span>Submitting...</span>
+                      </div>
+                    ) : (
+                      "Submit Request"
+                    )}
+                  </button>
                 </div>
               </div>
             </form>

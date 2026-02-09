@@ -77,11 +77,11 @@ const LeaveManagerApproval = () => {
       .replace(/\s+/g, ' ');
 
   const approverName = useMemo(
-    () => user?.employee_name || user?.Name || '',
+    () => user?.user_name || user?.Name || '',
     [user]
   );
   const approverCode = useMemo(
-    () => user?.employee_code || user?.employeeCode || '',
+    () => user?.employee_id || user?.employeeCode || '',
     [user]
   );
   const approverDepartment = useMemo(
@@ -110,7 +110,7 @@ const LeaveManagerApproval = () => {
       setItems([]);
       return;
     }
-    
+
 
     setLoading(true);
     try {
@@ -119,7 +119,7 @@ const LeaveManagerApproval = () => {
       const normalizedDepartments = new Set(
         effectiveDepartments.map(normalizeValue).filter(Boolean)
       );
-      
+
       // Use exact match only for department filtering
       const filtered = data.filter((item) => {
         const itemDept = normalizeValue(item.department);
@@ -137,7 +137,7 @@ const LeaveManagerApproval = () => {
         // Exact match only - no partial matching
         return normalizedDepartments.has(itemDept);
       });
-      
+
       setItems(filtered);
       setActionSelections((prev) => {
         const next = { ...prev };
@@ -264,10 +264,10 @@ const LeaveManagerApproval = () => {
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">From</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">To</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Reason</th>
-                    
-                      <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Mobile Number</th>
-                        <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Urgent Mobile Number</th>
-                        <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Status</th>
+
+                    <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Mobile Number</th>
+                    <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Urgent Mobile Number</th>
+                    <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Status</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">HR Approval</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3 text-right">Action</th>
                   </tr>
@@ -293,35 +293,35 @@ const LeaveManagerApproval = () => {
                     const approvalStatus = (item.approved_by_status || '').toLowerCase();
                     const isFinalized = approvalStatus === 'approved' || approvalStatus === 'rejected';
                     return (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-2 sm:px-4 py-3">
-                        <div className="font-medium text-gray-900 break-words">{item.employee_name || '-'}</div>
-                        <div className="text-xs text-gray-500 break-words">{item.designation || '-'}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-3 break-words">{item.department || '-'}</td>
-                      <td className="px-2 sm:px-4 py-3 whitespace-nowrap">{item.from_date ? new Date(item.from_date).toLocaleDateString() : '-'}</td>
-                      <td className="px-2 sm:px-4 py-3 whitespace-nowrap">{item.to_date ? new Date(item.to_date).toLocaleDateString() : '-'}</td>
-                      <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.reason || '-'}</td>
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-2 sm:px-4 py-3">
+                          <div className="font-medium text-gray-900 break-words">{item.user_name || '-'}</div>
+                          <div className="text-xs text-gray-500 break-words">{item.designation || '-'}</div>
+                        </td>
+                        <td className="px-2 sm:px-4 py-3 break-words">{item.department || '-'}</td>
+                        <td className="px-2 sm:px-4 py-3 whitespace-nowrap">{item.from_date ? new Date(item.from_date).toLocaleDateString() : '-'}</td>
+                        <td className="px-2 sm:px-4 py-3 whitespace-nowrap">{item.to_date ? new Date(item.to_date).toLocaleDateString() : '-'}</td>
+                        <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.reason || '-'}</td>
                         <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.mobilenumber || '-'}</td>
-                          <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.urgent_mobilenumber || '-'}</td>
-                      <td className="px-2 sm:px-4 py-3">{item.approved_by_status || item.request_status || '-'}</td>
-                      <td className="px-2 sm:px-4 py-3">{item.hr_approval || '-'}</td>
-                      <td className="px-2 sm:px-4 py-3">
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
-                          
-                          <button
-                            type="button"
-                            onClick={() => openApprovalModal(item)}
-                            disabled={isFinalized}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            <Edit size={14} />
-                            Edit
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
+                        <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.urgent_mobilenumber || '-'}</td>
+                        <td className="px-2 sm:px-4 py-3">{item.approved_by_status || item.request_status || '-'}</td>
+                        <td className="px-2 sm:px-4 py-3">{item.hr_approval || '-'}</td>
+                        <td className="px-2 sm:px-4 py-3">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
+
+                            <button
+                              type="button"
+                              onClick={() => openApprovalModal(item)}
+                              disabled={isFinalized}
+                              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <Edit size={14} />
+                              Edit
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
                   })}
                 </tbody>
               </table>

@@ -6,7 +6,7 @@ import { loginEmployee } from '../api/employeeApi';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const [employeeCode, setEmployeeCode] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
@@ -18,7 +18,7 @@ const Login = () => {
 
     try {
       const response = await loginEmployee({
-        employee_code: employeeCode,
+        user_name: userName,
         password,
       });
 
@@ -36,7 +36,7 @@ const Login = () => {
       login(employee, token);
       toast.success('Login successful!');
       const ticketOnlyCodes = ['S09191', 'S03835'];
-      const loggedEmployeeCode = employee?.employee_code || '';
+      const loggedEmployeeCode = employee?.employee_id || '';
       navigate(ticketOnlyCodes.includes(loggedEmployeeCode) ? '/tickets' : '/', { replace: true });
     } catch (err) {
       toast.error(err?.message || 'Network error');
@@ -63,20 +63,20 @@ const Login = () => {
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="employeeCode" className="sr-only">Employee Code</label>
+              <label htmlFor="userName" className="sr-only">User Name</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-indigo-700" />
                 </div>
                 <input
-                  id="employeeCode"
-                  name="employeeCode"
+                  id="userName"
+                  name="userName"
                   type="text"
                   required
-                  value={employeeCode}
-                  onChange={(e) => setEmployeeCode(e.target.value)}
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
                   className="appearance-none relative block w-full pl-10 pr-3 py-3 border-gray-500 border text-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:border-white focus:z-10 sm:text-sm bg-white bg-opacity-10"
-                  placeholder="Employee Code"
+                  placeholder="User Name"
                 />
               </div>
             </div>
