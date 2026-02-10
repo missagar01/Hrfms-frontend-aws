@@ -27,6 +27,7 @@ jobs:
       - name: Create .env file
         run: |
           echo "VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}" > .env
+          echo "VITE_API_BASE_URL is set."
 
       - name: Install dependencies
         run: npm ci || npm install
@@ -43,4 +44,8 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync dist s3://${{ secrets.S3_BUCKET }} --delete
+          # Sync everything except index.html with long cache
+          aws s3 sync dist s3://${{ secrets.S3_BUCKET }} --delete --exclude "index.html" --cache-control "public, max-age=31536000, immutable"
+          
+          # Upload index.html with no-cache to ensure users get the latest version immediately
+          aws s3 cp dist/index.html s3://${{ secrets.S3_BUCKET }}/index.html --cache-control "no-cache, no-store, must-revalidate"
