@@ -63,7 +63,7 @@ const Login = () => {
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="userName" className="sr-only">User Name</label>
+              <label htmlFor="userName" className="sr-only">User Name or Employee ID</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-indigo-700" />
@@ -76,7 +76,7 @@ const Login = () => {
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   className="appearance-none relative block w-full pl-10 pr-3 py-3 border-gray-500 border text-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:border-white focus:z-10 sm:text-sm bg-white bg-opacity-10"
-                  placeholder="User Name"
+                  placeholder="User Name or Employee ID"
                 />
               </div>
             </div>
