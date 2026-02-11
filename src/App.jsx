@@ -27,6 +27,7 @@ import SelectedCondidate from "./pages/SelectedCondidate";
 import { useAuth } from "./context/AuthContext";
 import PlaneVisitor from "./pages/PlantVisitor";
 import PlantVisitorList from "./pages/PlantVisitorList";
+import EmployeeDetailsPage from "./pages/EmployeeDetailsPage";
 
 const RoleBasedHome = () => {
   const { user, isInitializing } = useAuth();
@@ -35,15 +36,8 @@ const RoleBasedHome = () => {
     return null;
   }
 
-  const isAdmin =
-    (user?.role || "").toLowerCase() === "admin" || user?.Admin === "Yes";
-
-  if (isAdmin) {
-    return <Dashboard />;
-  }
-
-  // For employees, always redirect to My Profile
-  return <Navigate to="/my-profile" replace />;
+  // Dashboard now handles role checking internally to show either AdminDashboard or UserDashboard
+  return <Dashboard />;
 };
 
 function App() {
@@ -67,6 +61,7 @@ function App() {
             <Route path="resume-request" element={<ResumeRequest />} />
             <Route path="resume-list" element={<ResumeList />} />
             <Route path="employee-create" element={<EmployeeCreate />} />
+            <Route path="employee-details/:employeeId" element={<EmployeeDetailsPage />} />
             <Route path="condidate-list" element={<CandidateStatus />} />
             <Route path="condidate-select" element={<SelectedCondidate />} />
             <Route path="requests" element={<RequestCreate />} />

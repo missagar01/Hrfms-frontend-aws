@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Pencil, Trash2, UserPlus, X, ChevronDown } from 'lucide-react';
+import { Pencil, Trash2, UserPlus, X, ChevronDown, Calendar, MapPin, Plane, Ticket, Clock, Briefcase, User, Mail, Phone, Building, Briefcase as DesignationIcon, CheckCircle2, XCircle, Eye, ShieldCheck, FileText, ExternalLink, Download } from 'lucide-react';
 import { createEmployee, deleteEmployee, getEmployees, updateEmployee } from '../api/employeeApi';
+import { getEmployeeFullDetails } from '../api/dashboardApi';
 import { useAuth } from '../context/AuthContext';
-
 
 // Available routes for page access
 const availableRoutes = [
@@ -57,6 +58,7 @@ const EmployeeCreate = () => {
   const dropdownRef = useRef(null);
   const [profileImgPreview, setProfileImgPreview] = useState(null);
   const [documentImgPreview, setDocumentImgPreview] = useState(null);
+  const navigate = useNavigate();
   const { token, user } = useAuth();
 
   const isAdmin = (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes';
@@ -252,6 +254,15 @@ const EmployeeCreate = () => {
     const documentImgChanged = form.document_img instanceof File;
 
     return !arePageAccessEqual || profileImgChanged || documentImgChanged;
+  };
+
+  const handleRowClick = (employee) => {
+    const employeeId = employee?.employee_id;
+    if (!employeeId) {
+      toast.error('Employee ID not found');
+      return;
+    }
+    navigate(`/employee-details/${employeeId}`);
   };
 
   const handleSubmit = async (event) => {
@@ -970,7 +981,11 @@ const EmployeeCreate = () => {
                       {!tableLoading && !tableError && filteredEmployees.map((employee) => {
                         const employeeId = getEmployeeId(employee);
                         return (
-                          <tr key={employeeId ?? employee?.employee_id} className="hover:bg-gray-50">
+                          <tr
+                            key={employeeId ?? employee?.employee_id}
+                            className="hover:bg-gray-50 cursor-pointer transition-colors"
+                            onClick={() => handleRowClick(employee)}
+                          >
                             <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.employee_id || '-'}</td>
                             <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium">{employee?.user_name || '-'}</td>
                             <td className="hidden sm:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.email || '-'}</td>
@@ -990,7 +1005,15 @@ const EmployeeCreate = () => {
                               <div className="flex justify-end gap-1 sm:gap-2">
                                 <button
                                   type="button"
-                                  onClick={() => handleEdit(employee)}
+                                  onClick={(e) => { e.stopPropagation(); handleRowClick(employee); }}
+                                  className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 px-2 sm:px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 transition-colors"
+                                >
+                                  <Eye size={12} className="sm:w-[14px] sm:h-[14px]" />
+                                  <span className="hidden sm:inline">Details</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); handleEdit(employee); }}
                                   className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 px-2 sm:px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50"
                                 >
                                   <Pencil size={12} className="sm:w-[14px] sm:h-[14px]" />
@@ -998,7 +1021,7 @@ const EmployeeCreate = () => {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => handleDelete(employee)}
+                                  onClick={(e) => { e.stopPropagation(); handleDelete(employee); }}
                                   className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2 sm:px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
                                 >
                                   <Trash2 size={12} className="sm:w-[14px] sm:h-[14px]" />
@@ -1017,6 +1040,7 @@ const EmployeeCreate = () => {
           </div>
         )}
       </div>
+
     </div>
   );
 };
