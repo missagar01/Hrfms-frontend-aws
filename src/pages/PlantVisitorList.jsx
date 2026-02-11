@@ -23,10 +23,10 @@ const initialForm = {
 
 const statusOptions = ['PENDING', 'APPROVED', 'REJECTED'];
 
-const PlantVisitorList= () => {
+const PlantVisitorList = () => {
   const { user, token } = useAuth();
-  const defaultEmployeeCode = user?.employee_code || '';
-  const defaultPersonName = user?.employee_name || '';
+  const defaultEmployeeCode = user?.employee_id || user?.employee_code || '';
+  const defaultPersonName = user?.user_name || user?.employee_name || '';
   const [form, setForm] = useState(() => ({
     ...initialForm,
     employee_code: defaultEmployeeCode,
@@ -103,8 +103,8 @@ const PlantVisitorList= () => {
     try {
       const payload = {
         request_status: selectedStatus,
-        approv_employee_code: user?.employee_code || '',
-        approve_by_name: user?.employee_name || '',
+        approv_employee_code: user?.employee_id || user?.employee_code || '',
+        approve_by_name: user?.user_name || user?.employee_name || '',
       };
       await updatePlaneVisitor(visitor.id, payload, token);
       toast.success('Status updated.');
@@ -179,7 +179,7 @@ const PlantVisitorList= () => {
             <div>
               <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Plant Visitors</p>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Plant Visitor Requests</h1>
-            
+
             </div>
             {/* <button
               type="button"
@@ -438,7 +438,7 @@ const PlantVisitorList= () => {
                     />
                   </div>
 
-            
+
 
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
                     <button

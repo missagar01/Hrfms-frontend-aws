@@ -44,7 +44,7 @@ const LeaveHrApproval = () => {
       const payload = {
         hr_approval: 'Approved',
         request_status: 'Approved',
-        approval_hr: user?.employee_id || user?.employeeCode || null,
+        approval_hr: user?.employee_id || user?.employee_code || user?.employeeCode || null,
       };
       const response = await updateLeaveRequest(requestId, payload, token);
       if (!response?.success) {

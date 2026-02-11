@@ -19,8 +19,8 @@ const initialForm = {
 
 const PlaneVisitor = () => {
   const { user, token } = useAuth();
-  const defaultEmployeeCode = user?.employee_code || '';
-  const defaultPersonName = user?.employee_name || '';
+  const defaultEmployeeCode = user?.employee_id || user?.employee_code || '';
+  const defaultPersonName = user?.user_name || user?.employee_name || '';
   const [form, setForm] = useState(() => ({
     ...initialForm,
     employee_code: defaultEmployeeCode,

@@ -32,8 +32,8 @@ const initialForm = {
 const ResumeRequest = () => {
   const { user, token } = useAuth();
 
-  const defaultEmployeeCode = user?.employee_code || '';
-  const defaultPersonName = user?.employee_name || '';
+  const defaultEmployeeCode = user?.employee_id || user?.employee_code || '';
+  const defaultPersonName = user?.user_name || user?.employee_name || '';
   const defaultDesignation = user?.designation || '';
 
   const [form, setForm] = useState(() => ({
@@ -121,7 +121,7 @@ const ResumeRequest = () => {
     // Build payload with only provided values (remove empty strings)
     const buildPayload = () => {
       const payload = {};
-      
+
       // Add fields only if they have values
       if (employeeCodeValue) payload.employee_code = employeeCodeValue;
       if (requesterNameValue) payload.requester_name = requesterNameValue;
@@ -131,30 +131,30 @@ const ResumeRequest = () => {
       if (form.experience) payload.experience = form.experience;
       if (form.education) payload.education = form.education;
       if (form.remarks) payload.remarks = form.remarks;
-      
+
       // Handle numeric fields - only include if they have valid values
       if (form.request_quantity !== '' && form.request_quantity !== null && form.request_quantity !== undefined) {
         payload.request_quantity = Number(form.request_quantity);
       }
-      
+
       // Handle dates - only include if they have values
       if (form.from_date) payload.from_date = form.from_date;
       if (form.to_date) payload.to_date = form.to_date;
       if (form.departure_date) payload.departure_date = form.departure_date;
-      
+
       // Handle other optional fields
       if (form.type_of_travel) payload.type_of_travel = form.type_of_travel;
       if (form.reason_for_travel) payload.reason_for_travel = form.reason_for_travel;
       if (form.no_of_person !== '' && form.no_of_person !== null && form.no_of_person !== undefined) {
         payload.no_of_person = Number(form.no_of_person);
       }
-      
+
       // Ensure person_name is populated
       payload.person_name = form.person_name || requesterNameValue || employeeCodeValue;
-      
+
       // Set default status if not provided
       payload.request_status = form.request_status || 'Open';
-      
+
       return payload;
     };
 
@@ -183,8 +183,8 @@ const ResumeRequest = () => {
       console.error('Submit error:', error);
       toast.error(
         error?.response?.data?.message ||
-          error?.message ||
-          'Failed to create request'
+        error?.message ||
+        'Failed to create request'
       );
     } finally {
       setSubmitting(false);
@@ -198,7 +198,7 @@ const ResumeRequest = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Resume Request
+                MainPower Request
               </h1>
             </div>
           </div>

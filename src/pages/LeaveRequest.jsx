@@ -147,7 +147,7 @@ const LeaveRequest = () => {
           return String(item.employee_id ?? '') === String(employeeCodeValue);
         }
         if (employeeNameValue) {
-          return (item.user_name || '') === employeeNameValue;
+          return (item.employee_name || item.user_name || '') === employeeNameValue;
         }
         return true;
       });
@@ -161,7 +161,7 @@ const LeaveRequest = () => {
         return {
           id: item.id,
           employeeId: item.employee_id || '',
-          employeeName: item.user_name || '',
+          employeeName: item.employee_name || item.user_name || '',
           startDate,
           endDate,
           startDateRaw,
@@ -210,7 +210,7 @@ const LeaveRequest = () => {
 
       const payload = {
         employee_id: employeeIdValue,
-        user_name: formData.employeeName || employeeNameValue,
+        employee_name: employeeNameValue,
         designation: formData.designation || designationValue,
         department: departmentValue,
         from_date: formData.fromDate,

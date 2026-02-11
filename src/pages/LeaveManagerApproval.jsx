@@ -77,11 +77,11 @@ const LeaveManagerApproval = () => {
       .replace(/\s+/g, ' ');
 
   const approverName = useMemo(
-    () => user?.user_name || user?.Name || '',
+    () => user?.user_name || user?.employee_name || user?.Name || '',
     [user]
   );
   const approverCode = useMemo(
-    () => user?.employee_id || user?.employeeCode || '',
+    () => user?.employee_id || user?.employee_code || user?.employeeCode || '',
     [user]
   );
   const approverDepartment = useMemo(
