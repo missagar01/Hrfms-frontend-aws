@@ -13,7 +13,7 @@ export const getResumes = (token) =>
     token,
   });
 
-  export const getSelectCondidate = (token) =>
+export const getSelectCondidate = (token) =>
   apiRequest('/api/resumes/selected', {
     method: 'GET',
     token,
@@ -25,7 +25,7 @@ export const getByIdResumes = (id, token) =>
     token,
   });
 
-  export const updateResumes = (id, payload, token) =>
+export const updateResumes = (id, payload, token) =>
   apiRequest(`/api/resumes/${id}`, {
     method: 'PUT',
     body: payload,
