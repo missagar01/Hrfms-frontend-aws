@@ -29,8 +29,8 @@ const initialForm = {
 
 const RequestCreate = () => {
   const { user, token } = useAuth();
-  const defaultEmployeeCode = user?.employee_code || '';
-  const defaultPersonName = user?.employee_name || '';
+  const defaultEmployeeCode = user?.employee_id || user?.employee_code || '';
+  const defaultPersonName = user?.user_name || user?.employee_name || '';
 
   const [form, setForm] = useState(() => ({
     ...initialForm,
@@ -214,34 +214,34 @@ const RequestCreate = () => {
                 onChange={handleChange}
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 required
-            />
-          </div>
+              />
+            </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700" htmlFor="from_city">From City</label>
-            <input
-              id="from_city"
-              name="from_city"
-              value={form.from_city}
-              onChange={handleChange}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-              placeholder="Raipur"
-              required
-            />
-          </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700" htmlFor="from_city">From City</label>
+              <input
+                id="from_city"
+                name="from_city"
+                value={form.from_city}
+                onChange={handleChange}
+                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                placeholder="Raipur"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700" htmlFor="to_city">To City</label>
-            <input
-              id="to_city"
-              name="to_city"
-              value={form.to_city}
-              onChange={handleChange}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-              placeholder="Delhi"
-              required
-            />
-          </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700" htmlFor="to_city">To City</label>
+              <input
+                id="to_city"
+                name="to_city"
+                value={form.to_city}
+                onChange={handleChange}
+                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                placeholder="Delhi"
+                required
+              />
+            </div>
 
             <div>
               <label className="text-sm font-medium text-gray-700" htmlFor="departure_date">Departure Date</label>
@@ -256,7 +256,7 @@ const RequestCreate = () => {
             </div>
 
 
-            
+
             <div>
               <label className="text-sm font-medium text-gray-700" htmlFor="requester_department">Requester Department</label>
               <select

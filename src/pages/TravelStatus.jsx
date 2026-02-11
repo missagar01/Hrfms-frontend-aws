@@ -13,7 +13,7 @@ const TravelStatus = () => {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewIsPdf, setPreviewIsPdf] = useState(false);
 
-  const employeeCode = user?.employee_code || '';
+  const employeeCode = user?.employee_id || user?.employee_code || '';
   const filteredTickets = useMemo(
     () => tickets.filter((item) => item?.booked_employee_code === employeeCode),
     [tickets, employeeCode]

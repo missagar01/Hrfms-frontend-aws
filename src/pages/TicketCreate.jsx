@@ -24,8 +24,8 @@ const initialForm = {
 const TicketCreate = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const defaultEmployeeCode = user?.employee_code || '';
-  const defaultPersonName = user?.employee_name || '';
+  const defaultEmployeeCode = user?.employee_id || user?.employee_code || '';
+  const defaultPersonName = user?.user_name || user?.employee_name || '';
   const isAllowed = true;
 
   const [form, setForm] = useState(() => ({
@@ -200,7 +200,7 @@ const TicketCreate = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
-       <div className="space-y-6 px-4 pb-10 sm:px-6 lg:px-10">
+      <div className="space-y-6 px-4 pb-10 sm:px-6 lg:px-10">
         <div className="rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 p-6 sm:p-8 shadow-2xl mb-5 ring-1 ring-white/30">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -209,7 +209,7 @@ const TicketCreate = () => {
               <p className="mt-1 text-sm text-indigo-100">Upload bill details and booking information.</p>
             </div>
             <div className="flex items-center gap-3">
-              
+
               <div className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-white">
                 <Ticket size={18} />
                 <span className="text-sm font-semibold">HR FMS</span>
@@ -267,11 +267,11 @@ const TicketCreate = () => {
                 {!loadingRequests && requests.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => handleBookTicket(item)}
-                      className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
-                    >
+                      <button
+                        type="button"
+                        onClick={() => handleBookTicket(item)}
+                        className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                      >
                         Book Ticket
                       </button>
                     </td>
@@ -316,153 +316,153 @@ const TicketCreate = () => {
                 <div className="flex-1 overflow-y-auto px-5 py-4">
                   <form onSubmit={handleSubmit} className="space-y-6" aria-disabled={!isAllowed}>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="person_name">Person Name</label>
-                    <input
-                      id="person_name"
-                      name="person_name"
-                      value={personNameValue}
-                      onChange={handleChange}
-                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      placeholder="Rupesh Sahu"
-                      required
-                      readOnly
-                    />
-                  </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="person_name">Person Name</label>
+                        <input
+                          id="person_name"
+                          name="person_name"
+                          value={personNameValue}
+                          onChange={handleChange}
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          placeholder="Rupesh Sahu"
+                          required
+                          readOnly
+                        />
+                      </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="request_employee_code">Request Employee Code</label>
-                    <input
-                      id="request_employee_code"
-                      name="request_employee_code"
-                      value={requestEmployeeCodeValue}
-                      onChange={handleChange}
-                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      placeholder="S01111"
-                      required
-                      readOnly
-                    />
-                  </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="request_employee_code">Request Employee Code</label>
+                        <input
+                          id="request_employee_code"
+                          name="request_employee_code"
+                          value={requestEmployeeCodeValue}
+                          onChange={handleChange}
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          placeholder="S01111"
+                          required
+                          readOnly
+                        />
+                      </div>
 
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="bill_number">Bill Number</label>
-                    <input
-                      id="bill_number"
-                      name="bill_number"
-                      value={form.bill_number}
-                      onChange={handleChange}
-                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      placeholder="BILL001"
-                      required
-                    />
-                  </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="bill_number">Bill Number</label>
+                        <input
+                          id="bill_number"
+                          name="bill_number"
+                          value={form.bill_number}
+                          onChange={handleChange}
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          placeholder="BILL001"
+                          required
+                        />
+                      </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="travels_name">Travels Name</label>
-                    <input
-                      id="travels_name"
-                      name="travels_name"
-                      value={form.travels_name}
-                      onChange={handleChange}
-                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      placeholder="Bus Travels"
-                      required
-                    />
-                  </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="travels_name">Travels Name</label>
+                        <input
+                          id="travels_name"
+                          name="travels_name"
+                          value={form.travels_name}
+                          onChange={handleChange}
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          placeholder="Bus Travels"
+                          required
+                        />
+                      </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="type_of_bill">Type of Bill</label>
-                    <select
-                      id="type_of_bill"
-                      name="type_of_bill"
-                      value={form.type_of_bill}
-                      onChange={handleChange}
-                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      required
-                    >
-                      <option value="" disabled>Select type</option>
-                      <option value="Invoice">Invoice</option>
-                      <option value="Receipt">Receipt</option>
-                    </select>
-                  </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="type_of_bill">Type of Bill</label>
+                        <select
+                          id="type_of_bill"
+                          name="type_of_bill"
+                          value={form.type_of_bill}
+                          onChange={handleChange}
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          required
+                        >
+                          <option value="" disabled>Select type</option>
+                          <option value="Invoice">Invoice</option>
+                          <option value="Receipt">Receipt</option>
+                        </select>
+                      </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="charges">Charges</label>
-                    <input
-                      id="charges"
-                      name="charges"
-                      type="number"
-                      min="0"
-                      value={form.charges}
-                      onChange={handleChange}
-                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      placeholder="1000"
-                      required
-                    />
-                  </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="charges">Charges</label>
+                        <input
+                          id="charges"
+                          name="charges"
+                          type="number"
+                          min="0"
+                          value={form.charges}
+                          onChange={handleChange}
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          placeholder="1000"
+                          required
+                        />
+                      </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="per_ticket_amount">Per Ticket Amount</label>
-                    <input
-                      id="per_ticket_amount"
-                      name="per_ticket_amount"
-                      type="number"
-                      min="0"
-                      value={form.per_ticket_amount}
-                      onChange={handleChange}
-                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      placeholder="500"
-                      required
-                    />
-                  </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="per_ticket_amount">Per Ticket Amount</label>
+                        <input
+                          id="per_ticket_amount"
+                          name="per_ticket_amount"
+                          type="number"
+                          min="0"
+                          value={form.per_ticket_amount}
+                          onChange={handleChange}
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          placeholder="500"
+                          required
+                        />
+                      </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="total_amount">Total Amount</label>
-                    <input
-                      id="total_amount"
-                      name="total_amount"
-                      type="number"
-                      min="0"
-                      value={form.total_amount}
-                      onChange={handleChange}
-                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      placeholder="1000"
-                      required
-                    />
-                  </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="total_amount">Total Amount</label>
+                        <input
+                          id="total_amount"
+                          name="total_amount"
+                          type="number"
+                          min="0"
+                          value={form.total_amount}
+                          onChange={handleChange}
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          placeholder="1000"
+                          required
+                        />
+                      </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="status">Status</label>
-                    <select
-                      id="status"
-                      name="status"
-                      value={form.status}
-                      onChange={handleChange}
-                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                      required
-                    >
-                      <option value="" disabled>Select status</option>
-                      <option value="Booked">Booked</option>
-                      <option value="Cancel">Cancel</option>
-                    </select>
-                  </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="status">Status</label>
+                        <select
+                          id="status"
+                          name="status"
+                          value={form.status}
+                          onChange={handleChange}
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          required
+                        >
+                          <option value="" disabled>Select status</option>
+                          <option value="Booked">Booked</option>
+                          <option value="Cancel">Cancel</option>
+                        </select>
+                      </div>
 
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-gray-700" htmlFor="upload_bill_image">Upload Bill Image</label>
-                    <div className="mt-2 flex items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-3">
-                      <UploadCloud size={18} className="text-indigo-500" />
-                      <input
-                        id="upload_bill_image"
-                        name="upload_bill_image"
-                        type="file"
-                        accept="image/*,.pdf"
-                        onChange={handleFileChange}
-                        className="w-full text-sm text-gray-600"
-                      />
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium text-gray-700" htmlFor="upload_bill_image">Upload Bill Image</label>
+                        <div className="mt-2 flex items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-3">
+                          <UploadCloud size={18} className="text-indigo-500" />
+                          <input
+                            id="upload_bill_image"
+                            name="upload_bill_image"
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={handleFileChange}
+                            className="w-full text-sm text-gray-600"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
                       <button
