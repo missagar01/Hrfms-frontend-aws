@@ -168,7 +168,7 @@ const EmployeeDetailsPage = () => {
 
                                             return pages.map((p, i) => (
                                                 <span key={i} className="px-2.5 py-1 bg-white border border-gray-100 rounded-lg text-[8px] font-black text-gray-400 uppercase tracking-tighter shadow-sm hover:text-indigo-600 transition-colors">
-                                                    {p.replace(/^\/+/, '').replace(/-/g, ' ')}
+                                                    {(p === '/' || p === '/dashboard') ? 'Dashboard' : p.replace(/^\/+/, '').replace(/-/g, ' ')}
                                                 </span>
                                             ));
                                         })()}

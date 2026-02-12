@@ -57,7 +57,8 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<RoleBasedHome />} />
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<RoleBasedHome />} />
             <Route path="resume-request" element={<ResumeRequest />} />
             <Route path="resume-list" element={<ResumeList />} />
             <Route path="employee-create" element={<EmployeeCreate />} />

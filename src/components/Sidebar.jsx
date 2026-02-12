@@ -82,14 +82,14 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
   // Define menu items - moved to top to avoid hoisting issues
   const adminMenuItems = useMemo(() => [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/employee-create', icon: UserPlus, label: 'Employee' },
     { path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' },
     { path: '/resume-list', icon: BadgeDollarSign, label: 'MainPower List' },
   ], []);
 
   const employeeMenuItems = useMemo(() => [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/my-profile', icon: ProfileIcon, label: 'My Profile' },
     { path: '/resume-request', icon: BadgeDollarSign, label: 'MainPower Request' },
     { path: '/requests', icon: NotebookPen, label: 'Travel Request' },

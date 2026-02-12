@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 
 // Available routes for page access
 const availableRoutes = [
-  { path: '/', label: 'Dashboard' },
+  { path: '/dashboard', label: 'Dashboard' },
   { path: '/my-profile', label: 'My Profile' },
   { path: '/resume-request', label: 'MainPower Request' },
   { path: '/requests', label: 'Travel Form' },
