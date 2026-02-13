@@ -15,6 +15,7 @@ import LeaveRequest from "./pages/LeaveRequest";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LeaveManagerApproval from "./pages/LeaveManagerApproval";
 import LeaveHrApproval from "./pages/LeaveHrApproval";
+import CommercialHeadApproval from "./pages/CommercialHeadApproval";
 import EmployeeCreate from "./pages/EmployeeCreate";
 import RequestCreate from "./pages/RequestCreate";
 import TicketCreate from "./pages/TicketCreate";
@@ -73,6 +74,7 @@ function App() {
             <Route path="leave-request" element={<LeaveRequest />} />
             <Route path="leave-approvals" element={<LeaveManagerApproval />} />
             <Route path="leave-hr-approvals" element={<LeaveHrApproval />} />
+            <Route path="commercial-head-approval" element={<CommercialHeadApproval />} />
             <Route path="resume" element={<ResumeCreate />} />
             <Route path="plant-visitor" element={<PlaneVisitor />} />
             <Route path="plant-visitorlist" element={<PlantVisitorList />} />

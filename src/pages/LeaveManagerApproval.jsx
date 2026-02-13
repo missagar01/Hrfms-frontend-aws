@@ -4,63 +4,6 @@ import toast from 'react-hot-toast';
 import { getLeaveRequests, updateLeaveRequest } from '../api/leaveRequestApi';
 import { useAuth } from '../context/AuthContext';
 
-const approverDepartmentOverrides = {
-  S00002: [
-    'CRUSHER',
-    'SECURITY',
-    'WORKSHOP',
-    'STORE',
-    'CRM',
-    'TRANSPORT',
-    'STRIP MILL ELECTRICAL',
-    'ACCOUNTS',
-    'PURCHASE',
-    'INWARD',
-    'WB',
-    'SMS MAINTENANCE',
-    'DISPATCH',
-    'CCM ELECTRICAL',
-    'PC',
-    'HR',
-    'AUTOMATION',
-    'ADMIN',
-  ],
-  S00016: 'PIPE MILL PRODUCTION',
-  S00019: 'PIPE MILL MAINTENANCE',
-  S00037: 'PIPE MILL ELECTRICAL',
-  S00045: 'PIPE MILL PRODUCTION',
-  S00116: [
-    'CRUSHER',
-    'SECURITY',
-    'WORKSHOP',
-    'STORE',
-    'CRM',
-    'TRANSPORT',
-    'STRIP MILL ELECTRICAL',
-    'ACCOUNTS',
-    'PURCHASE',
-    'INWARD',
-    'WB',
-    'SMS MAINTENANCE',
-    'DISPATCH',
-    'CCM ELECTRICAL',
-    'PC',
-    'HR',
-    'AUTOMATION',
-    'PROJECT',
-  ],
-  S00143: 'MARKETING',
-  S00151: 'PIPE MILL PRODUCTION',
-  S00510: 'STRIP MILL ELECTRICAL',
-  S00658: 'SMS MAINTENANCE',
-  S04057: 'PIPE MILL PRODUCTION',
-  S04631: 'STRIP MILL PRODUCTION',
-  S05777: 'SMS ELECTRICAL',
-  S08132: 'SMS PRODUCTION',
-  S08392: 'CCM',
-  S08547: 'LAB AND QUALITY CONTROL',
-};
-
 const LeaveManagerApproval = () => {
   const { token, user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -80,28 +23,13 @@ const LeaveManagerApproval = () => {
     () => user?.user_name || user?.employee_name || user?.Name || '',
     [user]
   );
-  const approverCode = useMemo(
-    () => user?.employee_id || user?.employee_code || user?.employeeCode || '',
-    [user]
-  );
   const approverDepartment = useMemo(
     () => user?.department || user?.Department || '',
     [user]
   );
   const effectiveDepartments = useMemo(() => {
-    const override = approverDepartmentOverrides[approverCode];
-    if (Array.isArray(override)) {
-      const merged = new Set(override);
-      if (approverDepartment) {
-        merged.add(approverDepartment);
-      }
-      return Array.from(merged);
-    }
-    if (override) {
-      return [override];
-    }
     return approverDepartment ? [approverDepartment] : [];
-  }, [approverDepartment, approverCode]);
+  }, [approverDepartment]);
 
   const canApprove = true;
 
@@ -126,6 +54,7 @@ const LeaveManagerApproval = () => {
         if (!itemDept || normalizedDepartments.size === 0) {
           return false;
         }
+
         const approvalStatus = normalizeValue(item.approved_by_status);
         if (approvalStatus === 'approved') {
           return false;
@@ -269,13 +198,14 @@ const LeaveManagerApproval = () => {
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Urgent Mobile Number</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Status</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">HR Approval</th>
+                    <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Created</th>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {loading && (
                     <tr>
-                      <td colSpan="8" className="px-4 py-8 text-center text-sm text-gray-500">
+                      <td colSpan="11" className="px-4 py-8 text-center text-sm text-gray-500">
                         Loading leave requests...
                       </td>
                     </tr>
@@ -283,7 +213,7 @@ const LeaveManagerApproval = () => {
 
                   {!loading && items.length === 0 && (
                     <tr>
-                      <td colSpan="8" className="px-4 py-8 text-center text-sm text-gray-500">
+                      <td colSpan="11" className="px-4 py-8 text-center text-sm text-gray-500">
                         No leave requests found.
                       </td>
                     </tr>
@@ -295,7 +225,7 @@ const LeaveManagerApproval = () => {
                     return (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-2 sm:px-4 py-3">
-                          <div className="font-medium text-gray-900 break-words">{item.user_name || '-'}</div>
+                          <div className="font-medium text-gray-900 break-words">{item.employee_name || item.user_name || '-'}</div>
                           <div className="text-xs text-gray-500 break-words">{item.designation || '-'}</div>
                         </td>
                         <td className="px-2 sm:px-4 py-3 break-words">{item.department || '-'}</td>
@@ -306,6 +236,16 @@ const LeaveManagerApproval = () => {
                         <td className="px-2 sm:px-4 py-3 break-words max-w-xs">{item.urgent_mobilenumber || '-'}</td>
                         <td className="px-2 sm:px-4 py-3">{item.approved_by_status || item.request_status || '-'}</td>
                         <td className="px-2 sm:px-4 py-3">{item.hr_approval || '-'}</td>
+                        <td className="px-2 sm:px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                          {item.created_at ? new Date(item.created_at).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          }) : '-'}
+                        </td>
                         <td className="px-2 sm:px-4 py-3">
                           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
 

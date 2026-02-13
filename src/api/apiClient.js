@@ -17,16 +17,11 @@ export const apiRequest = async (path, options = {}) => {
   const { method = 'GET', body, token, headers } = options;
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
 
-  console.log(`🌐 API Request: ${method} ${path}`);
-  console.log(`🌐 Is FormData: ${isFormData}`);
-
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: buildHeaders(token, headers, isFormData),
     body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
   });
-
-  console.log(`🌐 API Response status: ${response.status}`);
 
   const contentType = response.headers.get('content-type') || '';
   const data = contentType.includes('application/json') ? await response.json() : null;

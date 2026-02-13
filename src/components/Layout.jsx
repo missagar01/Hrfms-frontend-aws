@@ -61,6 +61,10 @@ const routeMetadata = {
     title: 'HR Approvals',
     subtitle: 'Review HR escalated leave requests',
   },
+  '/commercial-head-approval': {
+    title: 'Commercial Head Approval',
+    subtitle: 'Review pending leave requests for Commercial Head approval',
+  },
   '/resume': {
     title: 'Resume',
     subtitle: 'Upload or edit resume content',

@@ -99,7 +99,7 @@ const LeaveRequest = () => {
     return diffDays;
   };
 
-  const formatDisplayDate = (value) => {
+  const formatDisplayDate = (value, showTime = false) => {
     if (!value) return '';
 
     const date = value instanceof Date ? value : new Date(value);
@@ -111,7 +111,15 @@ const LeaveRequest = () => {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
 
-    return `${day}/${month}/${year}`;
+    const dateStr = `${day}/${month}/${year}`;
+    if (!showTime) return dateStr;
+
+    const timeStr = date.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    return `${dateStr} ${timeStr}`;
   };
 
   // Check if a date falls within a specific month
@@ -169,7 +177,8 @@ const LeaveRequest = () => {
           reason: parsedReason,
           days: calculateDays(startDateRaw || startDate, endDateRaw || endDate),
           status: item.request_status || 'Pending',
-          appliedDate: formatDisplayDate(item.created_at),
+          appliedDate: formatDisplayDate(item.created_at, true),
+          approveDate: formatDisplayDate(item.approve_dates),
           approvedBy: item.approved_by || '',
         };
       });
@@ -339,6 +348,9 @@ const LeaveRequest = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Applied Date
                         </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          HR Approve Date
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -377,6 +389,9 @@ const LeaveRequest = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {request.appliedDate}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {request.approveDate || '-'}
                             </td>
                           </tr>
                         ))}

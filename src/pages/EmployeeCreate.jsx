@@ -19,6 +19,7 @@ const availableRoutes = [
   { path: '/plant-visitor', label: 'Plant Visitor' },
   { path: '/plant-visitorlist', label: 'Plant Visitor List' },
   { path: '/leave-approvals', label: 'Leave Approvals' },
+  { path: '/commercial-head-approval', label: 'Commercial Head' },
   { path: '/leave-hr-approvals', label: 'HR Approvals' },
   { path: '/resume-list', label: 'MainPower List' },
   { path: '/condidate-list', label: 'Interviwer List' },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     BarChart,
     Bar,
@@ -94,7 +94,11 @@ const AdminDashboard = () => {
         present: 0,
         absent: 0,
         totalActive: 0,
-        date: ''
+        date: '',
+        inCount: 0,
+        outCount: 0,
+        deviceConnected: true,
+        deviceStatus: []
     });
     const [statusDistribution, setStatusDistribution] = useState([]);
     const [monthlyHiringData, setMonthlyHiringData] = useState([]);
@@ -178,7 +182,11 @@ const AdminDashboard = () => {
                     present: payload.attendance?.present ?? 0,
                     absent: payload.attendance?.absent ?? 0,
                     totalActive: payload.attendance?.totalActive ?? 0,
-                    date: payload.attendance?.date || ''
+                    date: payload.attendance?.date || '',
+                    inCount: payload.attendance?.inCount ?? 0,
+                    outCount: payload.attendance?.outCount ?? 0,
+                    deviceConnected: payload.attendance?.deviceConnected ?? true,
+                    deviceStatus: Array.isArray(payload.attendance?.deviceStatus) ? payload.attendance.deviceStatus : []
                 });
             } catch (loadError) {
                 if (!isMounted) return;
@@ -197,7 +205,7 @@ const AdminDashboard = () => {
         };
     }, [token]);
 
-    const summaryCards = [
+    const summaryCards = useMemo(() => [
         {
             label: 'Total Employees',
             value: summary.totalEmployees,
@@ -262,9 +270,9 @@ const AdminDashboard = () => {
             iconBg: 'bg-indigo-500',
             textColor: 'text-white'
         }
-    ];
+    ], [summary.totalEmployees, summary.activeEmployees, leaveRequests.total, travelRequests.total, tickets.booked, resumes.total, resumes.selected, visitors.total]);
 
-    const requestCards = [
+    const requestCards = useMemo(() => [
         {
             title: 'Leave Requests',
             data: leaveRequests,
@@ -283,18 +291,20 @@ const AdminDashboard = () => {
             icon: Building2,
             color: CHART_COLORS.purple
         }
-    ];
+    ], [leaveRequests, travelRequests, visitors]);
 
-    const pieData = statusDistribution.length
-        ? statusDistribution.map((entry, index) => ({
-            name: entry.label,
-            value: entry.value,
-            color: STATUS_COLORS[index % STATUS_COLORS.length]
-        }))
-        : [
-            { name: 'Active', value: summary.activeEmployees, color: '#10B981' },
-            { name: 'Resigned', value: summary.resignedEmployees, color: '#EF4444' }
-        ];
+    const pieData = useMemo(() => (
+        statusDistribution.length
+            ? statusDistribution.map((entry, index) => ({
+                name: entry.label,
+                value: entry.value,
+                color: STATUS_COLORS[index % STATUS_COLORS.length]
+            }))
+            : [
+                { name: 'Active', value: summary.activeEmployees, color: '#10B981' },
+                { name: 'Resigned', value: summary.resignedEmployees, color: '#EF4444' }
+            ]
+    ), [statusDistribution, summary.activeEmployees, summary.resignedEmployees]);
 
     if (loading) {
         return (
@@ -353,7 +363,7 @@ const AdminDashboard = () => {
                                 <Clock size={20} className="mr-2" />
                                 Today's Attendance {attendance.date ? `(${attendance.date})` : ''}
                             </h2>
-                            <div className="grid grid-cols-3 gap-8 mt-4">
+                            <div className="grid grid-cols-5 gap-8 mt-4">
                                 <div>
                                     <p className="text-xs opacity-90 mb-1">Total Active</p>
                                     <p className="text-2xl font-bold">{attendance.totalActive}</p>
@@ -366,7 +376,13 @@ const AdminDashboard = () => {
                                     <p className="text-xs opacity-90 mb-1">Absent</p>
                                     <p className="text-2xl font-bold">{attendance.absent}</p>
                                 </div>
+                              
                             </div>
+                            {!attendance.deviceConnected && (
+                                <div className="mt-4 rounded-lg bg-red-500/20 border border-red-300/40 px-3 py-2 text-sm">
+                                    Device API connection failed for one or more machines. Live attendance logs are not available.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -94,7 +94,7 @@ const RequestCreate = () => {
         return;
       }
       toast.success('Request submitted successfully!');
-      console.log(payload)
+
       setForm({
         ...initialForm,
         employee_code: defaultEmployeeCode,
@@ -177,7 +177,6 @@ const RequestCreate = () => {
               />
             </div>
 
-
             <div>
               <label className="text-sm font-medium text-gray-700" htmlFor="no_of_person">No. of Persons</label>
               <input
@@ -254,8 +253,6 @@ const RequestCreate = () => {
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
               />
             </div>
-
-
 
             <div>
               <label className="text-sm font-medium text-gray-700" htmlFor="requester_department">Requester Department</label>

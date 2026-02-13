@@ -131,14 +131,13 @@ const ResumeCreate = () => {
     Object.entries(normalized).forEach(([key, value]) => {
       payload.append(key, value === null ? '' : value);
     });
-    console.log('📦 Frontend: Attaching file:', resumeFile.name);
+
     payload.append('resume', resumeFile);
     return payload;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('🚀 Frontend: Resume Form Submit Triggered');
 
     if (!token) {
       toast.error('Please login again to submit resume.');
@@ -151,15 +150,13 @@ const ResumeCreate = () => {
 
       if (payload instanceof FormData) {
         for (let pair of payload.entries()) {
-          console.log('📝 FormData entry:', pair[0], ':', pair[1]);
+
         }
       } else {
-        console.log('📝 JSON payload:', payload);
+
       }
 
-      console.log('🚀 Frontend: Sending request to /api/resumes');
       const response = await createResume(payload, token);
-      console.log('✅ Frontend: Response received:', response);
 
       if (!response?.success) {
         toast.error(response?.message || 'Failed to submit resume');
