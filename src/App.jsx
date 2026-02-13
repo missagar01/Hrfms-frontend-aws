@@ -1,5 +1,4 @@
-import React, { useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,6 +7,7 @@ import {
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Layout from "./components/Layout";
+import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import MyProfile from "./pages/MyProfile";
@@ -30,33 +30,24 @@ import PlaneVisitor from "./pages/PlantVisitor";
 import PlantVisitorList from "./pages/PlantVisitorList";
 import EmployeeDetailsPage from "./pages/EmployeeDetailsPage";
 
+const RoleBasedHome = () => {
+  const { user, isInitializing } = useAuth();
+
+  if (isInitializing) {
+    return null;
+  }
+
+  // Dashboard now handles role checking internally to show either AdminDashboard or UserDashboard
+  return <Dashboard />;
+};
+
 function App() {
-  const { login } = useAuth();
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("masterToken");
-
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        login(decoded, token);
-
-        // URL clean
-        window.history.replaceState({}, document.title, "/dashboard");
-      } catch (err) {
-        console.error("Invalid master token");
-      }
-    }
-  }, [login]);
-
   return (
     <div className="gradient-bg min-h-screen">
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Toaster position="top-right" />
         <Routes>
-
-          <Route path="/login" element={<Navigate to="http://localhost:5173/login" />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
           <Route
@@ -68,7 +59,7 @@ function App() {
             }
           >
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="dashboard" element={<RoleBasedHome />} />
             <Route path="resume-request" element={<ResumeRequest />} />
             <Route path="resume-list" element={<ResumeList />} />
             <Route path="employee-create" element={<EmployeeCreate />} />
