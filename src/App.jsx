@@ -1,6 +1,34 @@
 import React, { useEffect } from "react";
 import jwtDecode from "jwt-decode";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import Layout from "./components/Layout";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import MyProfile from "./pages/MyProfile";
+import LeaveRequest from "./pages/LeaveRequest";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LeaveManagerApproval from "./pages/LeaveManagerApproval";
+import LeaveHrApproval from "./pages/LeaveHrApproval";
+import CommercialHeadApproval from "./pages/CommercialHeadApproval";
+import EmployeeCreate from "./pages/EmployeeCreate";
+import RequestCreate from "./pages/RequestCreate";
+import TicketCreate from "./pages/TicketCreate";
+import TravelStatus from "./pages/TravelStatus";
+import ResumeCreate from "./pages/ResumeCreate";
+import ResumeRequest from "./pages/ResumeRequest";
+import ResumeList from "./pages/ResumeList";
+import CandidateStatus from "./pages/CandidateStatusPage";
+import SelectedCondidate from "./pages/SelectedCondidate";
 import { useAuth } from "./context/AuthContext";
+import PlaneVisitor from "./pages/PlantVisitor";
+import PlantVisitorList from "./pages/PlantVisitorList";
+import EmployeeDetailsPage from "./pages/EmployeeDetailsPage";
 
 function App() {
   const { login } = useAuth();
@@ -12,11 +40,9 @@ function App() {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-
-        // AuthContext ke through login karao
         login(decoded, token);
 
-        // URL clean kar do
+        // URL clean
         window.history.replaceState({}, document.title, "/dashboard");
       } catch (err) {
         console.error("Invalid master token");
@@ -26,12 +52,11 @@ function App() {
 
   return (
     <div className="gradient-bg min-h-screen">
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Router>
         <Toaster position="top-right" />
         <Routes>
 
           <Route path="/login" element={<Navigate to="http://localhost:5173/login" />} />
-
           <Route path="/signup" element={<Signup />} />
 
           <Route
@@ -43,7 +68,7 @@ function App() {
             }
           >
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<RoleBasedHome />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="resume-request" element={<ResumeRequest />} />
             <Route path="resume-list" element={<ResumeList />} />
             <Route path="employee-create" element={<EmployeeCreate />} />
@@ -70,3 +95,5 @@ function App() {
     </div>
   );
 }
+
+export default App;
