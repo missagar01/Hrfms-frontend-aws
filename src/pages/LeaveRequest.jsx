@@ -176,7 +176,7 @@ const LeaveRequest = () => {
           endDateRaw,
           reason: parsedReason,
           days: calculateDays(startDateRaw || startDate, endDateRaw || endDate),
-          status: item.request_status || 'Pending',
+          approvedByStatus: item.approved_by_status || 'Pending',
           appliedDate: formatDisplayDate(item.created_at, true),
           approveDate: formatDisplayDate(item.approve_dates),
           approvedBy: item.approved_by || '',
@@ -343,7 +343,7 @@ const LeaveRequest = () => {
                           Reason
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
+                          Manager Status
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Applied Date
@@ -377,14 +377,14 @@ const LeaveRequest = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
-                                className={`px-2 py-1 text-xs rounded-full ${(request.status || "").toLowerCase() === "approved"
+                                className={`px-2 py-1 text-xs rounded-full ${(request.approvedByStatus || "").toLowerCase() === "approved"
                                   ? "bg-green-100 text-green-800"
-                                  : (request.status || "").toLowerCase() === "rejected"
+                                  : (request.approvedByStatus || "").toLowerCase() === "rejected"
                                     ? "bg-red-100 text-red-800"
                                     : "bg-yellow-100 text-yellow-800"
                                   }`}
                               >
-                                {request.status}
+                                {request.approvedByStatus}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

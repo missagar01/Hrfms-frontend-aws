@@ -29,8 +29,11 @@ const CommercialHeadApproval = () => {
     );
 
     const isApproverAdmin = useMemo(() => {
-        return normalizeValue(approverDepartment) === 'admin';
-    }, [approverDepartment]);
+        const dept = normalizeValue(approverDepartment);
+        const role = normalizeValue(user?.role || user?.Role);
+        // Allow Admin department, Admin role, or Commercial Head role to view all
+        return dept === 'admin' || role === 'admin' || role.includes('commercial');
+    }, [approverDepartment, user]);
 
     const effectiveDepartments = useMemo(() => {
         return approverDepartment ? [approverDepartment] : [];
@@ -107,7 +110,11 @@ const CommercialHeadApproval = () => {
         if (Number.isNaN(parsed.getTime())) {
             return '';
         }
-        return parsed.toISOString().split('T')[0];
+        // Use local date parts to avoid UTC timezone shifting
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
 
     const submitApproval = async ({ requestId, from_date, to_date }) => {

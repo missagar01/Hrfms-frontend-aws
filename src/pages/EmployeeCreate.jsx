@@ -487,6 +487,10 @@ const EmployeeCreate = () => {
     const deptTerm = searchDepartment.trim().toLowerCase();
     const codeTerm = searchCode.trim().toLowerCase();
     return employees.filter((employee) => {
+      // Hide ADMIN user from the list
+      if ((employee?.user_name || '').toUpperCase() === 'ADMIN') {
+        return false;
+      }
       if (nameTerm && !(employee?.user_name ?? '').toLowerCase().includes(nameTerm)) {
         return false;
       }
