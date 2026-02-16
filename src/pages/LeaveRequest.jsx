@@ -148,11 +148,11 @@ const LeaveRequest = () => {
 
       const data = Array.isArray(response?.data) ? response.data : [];
       const filtered = data.filter((item) => {
-        if (employeeDbIdValue) {
-          return String(item.employee_id ?? '') === String(employeeDbIdValue);
-        }
         if (employeeCodeValue) {
           return String(item.employee_id ?? '') === String(employeeCodeValue);
+        }
+        if (employeeDbIdValue) {
+          return String(item.employee_id ?? '') === String(employeeDbIdValue);
         }
         if (employeeNameValue) {
           return (item.employee_name || item.user_name || '') === employeeNameValue;
@@ -214,7 +214,7 @@ const LeaveRequest = () => {
         const parsedEmployeeId = Number(formData.employeeId);
         return Number.isNaN(parsedEmployeeId) ? formData.employeeId || null : parsedEmployeeId;
       })();
-      const employeeIdValue = employeeDbIdValue || fallbackEmployeeId;
+      const employeeIdValue = employeeCodeValue || fallbackEmployeeId;
       const reasonText = formData.reason;
 
       const payload = {
@@ -227,7 +227,8 @@ const LeaveRequest = () => {
         reason: reasonText,
         mobilenumber: formData.mobilenumber ?? null,
         urgent_mobilenumber: formData.urgent_mobilenumber ?? null,
-        request_status: 'Pending'
+        request_status: 'Pending',
+        user_id: employeeDbIdValue
       };
 
       const result = await apiRequest('/api/leave-requests', {
@@ -235,6 +236,8 @@ const LeaveRequest = () => {
         token,
         body: payload,
       });
+
+      console.log(payload, "post")
 
       if (result?.success) {
         toast.success('Leave Request submitted successfully!');

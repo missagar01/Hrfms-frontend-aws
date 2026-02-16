@@ -376,7 +376,7 @@ const AdminDashboard = () => {
                                     <p className="text-xs opacity-90 mb-1">Absent</p>
                                     <p className="text-2xl font-bold">{attendance.absent}</p>
                                 </div>
-                              
+
                             </div>
                             {!attendance.deviceConnected && (
                                 <div className="mt-4 rounded-lg bg-red-500/20 border border-red-300/40 px-3 py-2 text-sm">
