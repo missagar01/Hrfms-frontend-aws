@@ -237,9 +237,6 @@ const LeaveRequest = () => {
         body: payload,
       });
 
-
-      console.log(payload, "post")
-
       if (result?.success) {
         toast.success('Leave Request submitted successfully!');
         setFormData({
