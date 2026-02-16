@@ -105,16 +105,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     { path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' },
   ], []);
 
-  const hrEmployeeCodes = ['S08046', 'S09103'];
-  const canApproveHrLeaves = hrEmployeeCodes.includes(user?.employee_id || '');
 
-  // Add HR Approvals to admin menu if user can approve HR leaves
-  const finalAdminMenuItems = useMemo(() => {
-    if (canApproveHrLeaves) {
-      return [...adminMenuItems, { path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' }];
-    }
-    return adminMenuItems;
-  }, [adminMenuItems, canApproveHrLeaves]);
 
   // Filter menu items based on role and page_access
   const menuItems = useMemo(() => {
@@ -123,7 +114,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
     if (isAdmin) {
       // Admin sees all admin and employee menu items (remove duplicates by path)
-      const allItems = [...finalAdminMenuItems, ...employeeMenuItems];
+      const allItems = [...adminMenuItems, ...employeeMenuItems];
       const uniqueItems = [];
       const seenPaths = new Set();
 
@@ -171,7 +162,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     });
 
     return filteredItems;
-  }, [isAdmin, finalAdminMenuItems, employeeMenuItems, pageAccess]);
+  }, [isAdmin, adminMenuItems, employeeMenuItems, pageAccess]);
 
   const SidebarContent = ({ onClose, isCollapsed = false }) => (
     <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-indigo-900 text-white`}>

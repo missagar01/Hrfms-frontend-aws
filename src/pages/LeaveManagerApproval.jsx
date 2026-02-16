@@ -23,13 +23,82 @@ const LeaveManagerApproval = () => {
     () => user?.user_name || user?.employee_name || user?.Name || '',
     [user]
   );
-  const approverDepartment = useMemo(
-    () => user?.department || user?.Department || '',
-    [user]
-  );
+  // Manager to Department Mapping based on the provided table
+  // Includes user_name (normalized) and employee_id (lowercase) aliases
+  const MANAGER_DEPARTMENT_MAPPING = {
+    // SMS
+    'deepakbhalla': ['SMS ELECTRICAL'],
+    's05777': ['SMS ELECTRICAL'],
+    'tejbahadur': ['SMS MAINTENANCE'],
+    's00658': ['SMS MAINTENANCE'],
+
+    // CCM & Strip Mill
+    'danveersingh': ['CCM ELECTRICAL', 'STRIP MILL ELECTRICAL'],
+    's00510': ['CCM ELECTRICAL', 'STRIP MILL ELECTRICAL'],
+    'shrirampatle': ['STRIP MILL MAINTENANCE'],
+    's00061': ['STRIP MILL MAINTENANCE'],
+    'sparshjha': ['STRIP MILL PRODUCTION'],
+    's03942': ['STRIP MILL PRODUCTION'],
+
+    // Pipe Mill
+    'rohan': ['PIPE MILL ELECTRICAL'],
+    's00037': ['PIPE MILL ELECTRICAL'],
+    'dhanjiyadav': ['WORKSHOP'],
+    's02725': ['WORKSHOP'],
+    'anupbopche': ['PIPE MILL MAINTENANCE'],
+    's00019': ['PIPE MILL MAINTENANCE'],
+    'hulas': ['PIPE MILL PRODUCTION'],
+    's00045': ['PIPE MILL PRODUCTION'],
+    'mantuanandghosh': ['PIPE MILL PRODUCTION'],
+    's04578': ['PIPE MILL PRODUCTION'], // Assuming S04578 from image
+    'kavisingh': ['PIPE MILL PRODUCTION'],
+    's09505': ['PIPE MILL PRODUCTION'],
+    'ravisingh': ['PIPE MILL PRODUCTION'],
+    's00151': ['PIPE MILL PRODUCTION'],
+    'grammohanrao': ['PIPE MILL PRODUCTION'],
+    's00016': ['PIPE MILL PRODUCTION'],
+
+    // Others
+    'mukeshpatle': ['LAB & QUALITY CONTROL'],
+    's08547': ['LAB & QUALITY CONTROL'],
+    'krameshkumar': ['PC'],
+    's09578': ['PC'],
+    'dcgoutam': ['DISPATCH', 'INWARD'],
+    'dcgautam': ['DISPATCH', 'INWARD'], // Spelling variation check
+    's00006': ['DISPATCH', 'INWARD'],
+    'anilmishra': ['CRM', 'MARKETING'],
+    's00143': ['CRM', 'MARKETING'],
+    'dineshbandhe': ['PROJECT'],
+    's08377': ['PROJECT'],
+    'ambikapandey': ['TRANSPORT'],
+    's08472': ['TRANSPORT'],
+    'jhaneshwarsahu': ['SECURITY'],
+    's09698': ['SECURITY'],
+    'manishkurrey': ['SECURITY'],
+    's00256': ['SECURITY'],
+
+    // Departments with Blank Manager -> HOD (Amit Tiwari) acts as Manager
+    'amittiwari': ['STORE', 'PURCHASE', 'AUTOMATION', 'HR', 'ADMIN', 'CRUSHER', 'WB']
+  };
+
   const effectiveDepartments = useMemo(() => {
-    return approverDepartment ? [approverDepartment] : [];
-  }, [approverDepartment]);
+    if (!user) return [];
+
+    const userName = (user.user_name || user.employee_name || user.Name || '').toString().toLowerCase().replace(/\s+/g, '');
+    const employeeId = (user.employee_id || '').toString().toLowerCase();
+
+    // Check user_name match
+    if (MANAGER_DEPARTMENT_MAPPING[userName]) {
+      return MANAGER_DEPARTMENT_MAPPING[userName];
+    }
+
+    // Check employee_id match
+    if (employeeId && MANAGER_DEPARTMENT_MAPPING[employeeId]) {
+      return MANAGER_DEPARTMENT_MAPPING[employeeId];
+    }
+
+    return [];
+  }, [user]);
 
   const canApprove = true;
 

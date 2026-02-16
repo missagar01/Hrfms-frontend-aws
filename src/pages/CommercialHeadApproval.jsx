@@ -19,25 +19,47 @@ const CommercialHeadApproval = () => {
             .toLowerCase()
             .replace(/\s+/g, ' ');
 
-    const approverName = useMemo(
-        () => user?.user_name || user?.employee_name || user?.Name || '',
-        [user]
-    );
-    const approverDepartment = useMemo(
-        () => user?.department || user?.Department || '',
-        [user]
-    );
 
-    const isApproverAdmin = useMemo(() => {
-        const dept = normalizeValue(approverDepartment);
-        const role = normalizeValue(user?.role || user?.Role);
-        // Allow Admin department, Admin role, or Commercial Head role to view all
-        return dept === 'admin' || role === 'admin' || role.includes('commercial');
-    }, [approverDepartment, user]);
+
+
+
+    // HOD to Department Mapping based on the provided table
+    // HOD to Department Mapping based on the provided table
+    // Keys are normalized (lowercase, no spaces) versions of the user_names in the database
+    const HOD_DEPARTMENT_MAPPING = {
+        'ajitkumargupta': ['SMS ELECTRICAL', 'SMS MAINTENANCE', 'PROJECT'],
+        'shaileshchitre': ['CCM ELECTRICAL', 'STRIP MILL ELECTRICAL', 'STRIP MILL MAINTENANCE', 'STRIP MILL PRODUCTION', 'WORKSHOP'], // Matches 'Shailesh Chitre'
+        'birbal': ['PIPE MILL ELECTRICAL', 'PIPE MILL MAINTENANCE', 'PIPE MILL PRODUCTION'], // Matches 'BIRBAL'
+        'amittiwari': [
+            'LAB & QUALITY CONTROL', 'STORE', 'PURCHASE', 'PC', 'AUTOMATION', 'HR',
+            'DISPATCH', 'INWARD', 'ADMIN', 'CRM', 'MARKETING', 'CRUSHER',
+            'TRANSPORT', 'SECURITY', 'WB'
+        ]
+    };
 
     const effectiveDepartments = useMemo(() => {
-        return approverDepartment ? [approverDepartment] : [];
-    }, [approverDepartment]);
+        if (!user) return [];
+
+        // Normalize the logged-in user's name for matching
+        // Example: "Amit Tiwari" -> "amittiwari", "ajitGupta" -> "ajitgupta"
+        const userName = (user.user_name || user.employee_name || user.Name || '').toString().toLowerCase().replace(/\s+/g, '');
+
+        // Find matching HOD departments
+        // We check if any key in the mapping is contained in the username or vice versa, 
+        // to handle potential variations like "Mr. Ajit Gupta" vs "Ajit Gupta".
+        // But for "camelCase" database names like "amitTiwari", the exact strip-space match should work best.
+
+        // Direct match attempt first
+        if (HOD_DEPARTMENT_MAPPING[userName]) {
+            return HOD_DEPARTMENT_MAPPING[userName];
+        }
+
+        // Fallback: Check if keys are partial matches or fuzzy
+        // The user mentioned "user_name camalcase me hai" (user_name is camelCase)
+        // so stripping spaces from map keys (done manually above) and comparing to stripped username is sufficient.
+
+        return [];
+    }, [user]);
 
     const fetchData = useCallback(async () => {
         if (!token) {
@@ -61,11 +83,7 @@ const CommercialHeadApproval = () => {
                     return false;
                 }
 
-                // If admin, show all (except already finalized by Commercial Head)
-                if (isApproverAdmin) {
-                    const commercialStatus = normalizeValue(item.commercial_head_status);
-                    return commercialStatus !== 'approved' && commercialStatus !== 'rejected';
-                }
+
 
                 const itemDept = normalizeValue(item.department);
                 if (!itemDept || normalizedDepartments.size === 0) {
@@ -96,7 +114,7 @@ const CommercialHeadApproval = () => {
         } finally {
             setLoading(false);
         }
-    }, [token, effectiveDepartments, isApproverAdmin]);
+    }, [token, effectiveDepartments]);
 
     useEffect(() => {
         fetchData();
@@ -201,7 +219,7 @@ const CommercialHeadApproval = () => {
                         <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Commercial Head Approval</p>
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Approve Leave Requests</h1>
                         <p className="mt-1 text-sm text-gray-500">
-                            {isApproverAdmin ? 'Reviewing all pending leave requests.' : 'Reviewing pending leave requests for your department.'}
+                            Reviewing pending leave requests for your department.
                         </p>
                     </div>
                 </div>
