@@ -95,6 +95,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     { path: '/resume-request', icon: BadgeDollarSign, label: 'MainPower Request' },
     { path: '/requests', icon: NotebookPen, label: 'Travel Request' },
     { path: '/resumes', icon: FileText, label: 'Candidate Resume' },
+    { path: '/resume-form', icon: FileText, label: 'Resume Upload' },
     { path: '/tickets', icon: BadgeDollarSign, label: 'Tickets' },
     { path: '/travel-status', icon: BadgeDollarSign, label: 'Travel Status' },
     { path: '/leave-request', icon: LeaveIcon, label: 'Leave Request' },

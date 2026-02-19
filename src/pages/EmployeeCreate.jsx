@@ -13,6 +13,7 @@ const availableRoutes = [
   { path: '/resume-request', label: 'MainPower Request' },
   { path: '/requests', label: 'Travel Form' },
   { path: '/resumes', label: 'Resume' },
+  { path: '/resume-form', label: 'Resume Upload' },
   { path: '/tickets', label: 'Tickets' },
   { path: '/travel-status', label: 'Travel Status' },
   { path: '/leave-request', label: 'Leave Request' },

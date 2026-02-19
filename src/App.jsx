@@ -29,6 +29,7 @@ import { useAuth } from "./context/AuthContext";
 import PlaneVisitor from "./pages/PlantVisitor";
 import PlantVisitorList from "./pages/PlantVisitorList";
 import EmployeeDetailsPage from "./pages/EmployeeDetailsPage";
+import ResumeForm from "./pages/ResumeForm";
 
 const RoleBasedHome = () => {
   const { user, isInitializing } = useAuth();
@@ -60,6 +61,7 @@ function App() {
           >
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<RoleBasedHome />} />
+            <Route path="resume-form" element={<ResumeForm />} />
             <Route path="resume-request" element={<ResumeRequest />} />
             <Route path="resume-list" element={<ResumeList />} />
             <Route path="employee-create" element={<EmployeeCreate />} />
