@@ -114,7 +114,7 @@ const Layout = () => {
     : 'Employee';
 
   return (
-    <div className="relative flex min-h-screen bg-gray-50">
+    <div className="relative flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden lg:pl-64">
         <div className="rounded-b-[32px] bg-white px-4 py-5 shadow-xl sm:px-6 md:px-8 border border-gray-200">
