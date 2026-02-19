@@ -289,23 +289,23 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       </div>
 
       {/* Tablet Sidebar - collapsible */}
-      <div className={`hidden md:block lg:hidden fixed inset-0 z-40 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`hidden md:block lg:hidden fixed inset-0 z-[60] transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div
           className="fixed inset-0 bg-black bg-opacity-50"
           onClick={closeSidebar}
         />
-        <div className={`fixed left-0 top-0 h-full z-50 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
+        <div className={`fixed left-0 top-0 h-full z-[70] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
           <SidebarContent onClose={closeSidebar} />
         </div>
       </div>
 
       {/* Mobile Sidebar - collapsible */}
-      <div className={`md:hidden fixed inset-0 z-40 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`md:hidden fixed inset-0 z-[60] transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div
           className="fixed inset-0 bg-black bg-opacity-50"
           onClick={closeSidebar}
         />
-        <div className={`fixed left-0 top-0 h-full z-50 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
+        <div className={`fixed left-0 top-0 h-full z-[70] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
           <SidebarContent onClose={closeSidebar} />
         </div>
       </div>

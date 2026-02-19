@@ -117,25 +117,36 @@ const Layout = () => {
     <div className="relative flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden lg:pl-64">
-        <div className="rounded-b-[32px] bg-white px-4 py-5 shadow-xl sm:px-6 md:px-8 border border-gray-200">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden rounded-full border border-indigo-200 bg-indigo-50 p-3 text-indigo-600 shadow-sm transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            >
-              <span className="sr-only">Open sidebar</span>
-              <Menu size={20} />
-            </button>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.5em] text-indigo-500">HR FMS</p>
-              <h1 className="mt-1 text-2xl font-semibold leading-tight text-gray-900 sm:text-3xl md:text-4xl">
-                {pageDetails.title}
-              </h1>
-              {pageDetails.subtitle && (
-                <p className="mt-1 text-sm text-gray-600">{pageDetails.subtitle}</p>
-              )}
+        <div className="rounded-b-[20px] md:rounded-b-[32px] bg-white px-3 py-4 shadow-xl sm:px-6 md:px-8 border border-gray-200">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <div className="flex items-center gap-3 md:gap-4">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden rounded-full border border-indigo-200 bg-indigo-50 p-2 text-indigo-600 shadow-sm transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              >
+                <span className="sr-only">Open sidebar</span>
+                <Menu size={20} />
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] md:text-xs font-semibold uppercase tracking-[0.3em] md:tracking-[0.5em] text-indigo-500">HR FMS</p>
+                <div className="flex items-center justify-between">
+                  <h1 className="mt-1 text-xl font-semibold leading-tight text-gray-900 sm:text-2xl md:text-4xl truncate">
+                    {pageDetails.title}
+                  </h1>
+
+                  {/* Mobile Profile Icon/User Info could go here if needed, but let's keep it simple for now */}
+                  <div className="md:hidden flex flex-col items-end text-right text-gray-700 ml-2">
+                    <span className="text-xs font-semibold truncate max-w-[100px]">{displayName}</span>
+                  </div>
+                </div>
+
+                {pageDetails.subtitle && (
+                  <p className="mt-1 text-xs md:text-sm text-gray-600 truncate">{pageDetails.subtitle}</p>
+                )}
+              </div>
             </div>
-            <div className="hidden md:flex flex-col items-end text-right text-gray-700">
+
+            <div className="hidden md:flex flex-col items-end text-right text-gray-700 ml-auto">
               <span className="text-sm font-semibold">{displayName}</span>
               <span className="text-xs uppercase tracking-[0.4em] text-indigo-500">{displayRole}</span>
             </div>
@@ -165,3 +176,6 @@ const Layout = () => {
 };
 
 export default Layout;
+
+
+

@@ -114,7 +114,7 @@ const UserDashboard = () => {
             </div>
 
             {/* Summary Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 {summaryCards.map((card, index) => {
                     const Icon = card.icon;
                     return (
@@ -123,14 +123,14 @@ const UserDashboard = () => {
                             className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                             style={{ backgroundImage: card.gradient }}
                         >
-                            <div className="p-4 sm:p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className={`${card.iconBg} rounded-lg p-3 shadow-md`}>
-                                        <Icon size={24} className="text-white" />
+                            <div className="p-3 sm:p-6">
+                                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                                    <div className={`${card.iconBg} rounded-lg p-2 sm:p-3 shadow-md`}>
+                                        <Icon size={18} className="text-white sm:w-6 sm:h-6" />
                                     </div>
                                 </div>
-                                <p className={`text-xs sm:text-sm font-medium mb-1 ${card.textColor} opacity-90`}>{card.label}</p>
-                                <h3 className={`text-2xl sm:text-3xl font-bold ${card.textColor}`}>{card.value.toLocaleString()}</h3>
+                                <p className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${card.textColor} opacity-90`}>{card.label}</p>
+                                <h3 className={`text-xl sm:text-3xl font-bold ${card.textColor}`}>{card.value.toLocaleString()}</h3>
                             </div>
                         </div>
                     );
@@ -194,83 +194,92 @@ const AttendanceCard = ({ attendance, month }) => {
     const startDate = new Date(year, monthIndex, 1);
     const endDate = new Date(year, monthIndex + 1, 0);
     const days = eachDayOfInterval({ start: startDate, end: endDate });
+    const startDay = getDay(startDate); // 0-6 Sun-Sat
 
-    const getStatusStyle = (status) => {
-        if (status === 'P') return 'bg-emerald-500 text-white font-bold border-2 border-transparent hover:bg-emerald-600 shadow-sm';
-        if (status === 'A') return 'bg-red-500 text-white font-bold border-2 border-transparent hover:bg-red-600 shadow-sm';
-        if (status === 'H') return 'bg-amber-100 text-amber-800 font-bold border-2 border-transparent hover:bg-amber-200 shadow-sm';
-        return 'bg-white/10 text-white/50 border border-white/10'; // For empty or future dates
-    };
-
-    const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
     return (
-        <div
-            className="rounded-xl shadow-lg p-6 border border-white/20 text-white"
-            style={{ backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-        >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                <h2 className="text-lg font-bold flex items-center gap-2 text-white">
-                    <Clock className="text-white" size={20} />
-                    <span>Attendance Overview</span>
-                </h2>
-                <div className="flex flex-wrap gap-2 text-sm">
-                    <div className="px-3 py-1 bg-white/20 text-white rounded-full font-medium border border-white/30 flex items-center shadow-sm backdrop-blur-sm">
-                        <CheckCircle2 size={14} className="mr-1" /> Present: {attendance.present}
+        <div className="bg-emerald-500 rounded-xl shadow-lg overflow-hidden text-white transition-all duration-300">
+            {/* Calendar Header */}
+            <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-center border-b border-emerald-400/30 gap-4">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                    <div className="flex items-center gap-2">
+                        <Calendar className="text-white" size={24} />
+                        <h2 className="text-xl font-bold">Attendance Calendar</h2>
                     </div>
-                    <div className="px-3 py-1 bg-white/20 text-white rounded-full font-medium border border-white/30 flex items-center shadow-sm backdrop-blur-sm">
-                        <XCircle size={14} className="mr-1" /> Absent: {attendance.absent}
+                </div>
+
+                {/* Stats Chips */}
+                <div className="flex gap-2 sm:gap-4 text-xs sm:text-sm font-medium bg-emerald-600/40 p-1.5 sm:px-4 sm:py-2 rounded-lg backdrop-blur-sm w-full sm:w-auto justify-around sm:justify-start">
+                    <div className="flex items-center gap-1.5">
+                        <CheckCircle2 size={16} className="text-white" />
+                        <span><span className="opacity-80">Present:</span> <strong>{attendance.present}</strong></span>
                     </div>
-                    <div className="px-3 py-1 bg-white/20 text-white rounded-full font-medium border border-white/30 flex items-center shadow-sm backdrop-blur-sm">
-                        <Briefcase size={14} className="mr-1" /> Working Days: {attendance.totalWorkingDays}
+                    <div className="flex items-center gap-1.5 sm:border-l sm:border-emerald-400/50 sm:pl-4">
+                        <XCircle size={16} className="text-white" />
+                        <span><span className="opacity-80">Absent:</span> <strong>{attendance.absent}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 sm:border-l sm:border-emerald-400/50 sm:pl-4 hidden sm:flex">
+                        <Briefcase size={16} className="text-white" />
+                        <span><span className="opacity-80">Working:</span> <strong>{attendance.totalWorkingDays}</strong></span>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 mb-2">
-                {dayLabels.map(day => (
-                    <div key={day} className="text-center text-[10px] sm:text-xs font-semibold text-white/80 uppercase py-1">
-                        {day}
-                    </div>
-                ))}
-            </div>
+            <div className="p-3 sm:p-6">
+                <div className="text-center mb-4">
+                    <h3 className="text-lg font-bold flex items-center justify-center gap-2">
+                        {format(startDate, 'MMMM yyyy')}
+                    </h3>
+                </div>
 
-            <div className="grid grid-cols-7 gap-2">
-                {/* Padding for start of month */}
-                {Array(startDate.getDay()).fill(null).map((_, i) => (
-                    <div key={`empty-${i}`} className="p-1" />
-                ))}
-
-                {days.map(day => {
-                    const dateStr = format(day, 'yyyy-MM-dd');
-                    const status = attendance.details[dateStr] || '-';
-                    const isToday = isSameDay(day, new Date());
-
-                    // Add distinct visual cues
-                    let statusLabel = '';
-                    if (status === 'P') statusLabel = 'Present';
-                    else if (status === 'A') statusLabel = 'Absent';
-                    else if (status === 'H') statusLabel = 'Holiday';
-
-                    return (
-                        <div
-                            key={dateStr}
-                            className={`
-                h-14 sm:h-16 rounded-xl flex flex-col items-center justify-center transition-all relative group cursor-default transform hover:scale-[1.02] duration-200
-                ${getStatusStyle(status)}
-                ${isToday ? 'ring-2 ring-white ring-offset-2 ring-offset-transparent z-10' : ''}
-              `}
-                            title={statusLabel ? `${format(day, 'd MMM')}: ${statusLabel}` : format(day, 'd MMM')}
-                        >
-                            <span className={`text-xs sm:text-sm font-semibold`}>{format(day, 'd')}</span>
-                            {status !== '-' && (
-                                <span className={`text-[10px] uppercase mt-0.5 font-extrabold tracking-wider`}>
-                                    {status}
-                                </span>
-                            )}
+                <div className="grid grid-cols-7 gap-1 sm:gap-2 max-w-4xl mx-auto">
+                    {dayLabels.map(day => (
+                        <div key={day} className="text-center text-xs sm:text-sm font-bold opacity-80 py-2 uppercase tracking-wider">
+                            {day}
                         </div>
-                    );
-                })}
+                    ))}
+
+                    {Array(startDay).fill(null).map((_, i) => (
+                        <div key={`empty-${i}`} />
+                    ))}
+
+                    {days.map(day => {
+                        const dateStr = format(day, 'yyyy-MM-dd');
+                        const status = attendance.details[dateStr];
+                        const isToday = isSameDay(day, new Date());
+
+                        let cellBg = 'hover:bg-emerald-400/20';
+
+                        if (status === 'P') cellBg = 'bg-white/20 font-bold shadow-sm';
+                        else if (status === 'A') cellBg = 'bg-rose-500 font-bold shadow-sm';
+                        else if (status === 'H') cellBg = 'bg-amber-400 text-amber-900 font-bold shadow-sm';
+
+                        if (isToday) {
+                            cellBg += ' ring-2 ring-white z-10';
+                        }
+
+                        return (
+                            <div
+                                key={dateStr}
+                                className={`
+                                    aspect-square rounded-md sm:rounded-lg flex flex-col items-center justify-center relative transition-all duration-200
+                                    ${cellBg}
+                                `}
+                            >
+                                <span className="text-sm sm:text-lg">{format(day, 'd')}</span>
+                                {status && (
+                                    <div className="mt-0.5">
+                                        <span className="text-[10px] font-extrabold sm:hidden">{status}</span>
+                                        <span className="text-[10px] font-medium hidden sm:block opacity-90">
+                                            {status === 'P' ? 'Present' : status === 'A' ? 'Absent' : status}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

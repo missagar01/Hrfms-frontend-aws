@@ -254,7 +254,7 @@ const LeaveManagerApproval = () => {
         <div className="rounded-2xl bg-white p-4 sm:p-6 shadow-xl">
           <div className="mt-2 overflow-hidden rounded-xl border border-gray-200">
             <div className="max-h-[65vh] overflow-x-auto overflow-y-auto">
-              <table className="min-w-full w-full text-left text-sm">
+              <table className="min-w-full w-full text-left text-sm hidden md:table">
                 <thead className="sticky top-0 z-20 bg-gray-50 text-xs uppercase text-gray-500 shadow-sm">
                   <tr>
                     <th className="sticky top-0 bg-gray-50 px-2 sm:px-4 py-3">Employee</th>
@@ -322,7 +322,7 @@ const LeaveManagerApproval = () => {
                               type="button"
                               onClick={() => openApprovalModal(item)}
                               disabled={isFinalized}
-                              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px] md:min-h-0"
                             >
                               <Edit size={14} />
                               Edit
@@ -334,11 +334,52 @@ const LeaveManagerApproval = () => {
                   })}
                 </tbody>
               </table>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {loading && <p className="text-center text-gray-500 py-4">Loading...</p>}
+                {!loading && items.length === 0 && <p className="text-center text-gray-500 py-4">No requests found.</p>}
+                {!loading && items.map((item) => {
+                  const approvalStatus = (item.approved_by_status || '').toLowerCase();
+                  const isFinalized = approvalStatus === 'approved' || approvalStatus === 'rejected';
+                  return (
+                    <div key={item.id} className="bg-white border rounded-lg p-4 shadow-sm">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-bold text-gray-900">{item.employee_name || item.user_name || '-'}</p>
+                          <p className="text-xs text-gray-500">{item.designation || '-'}</p>
+                        </div>
+                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${approvalStatus === 'approved' ? 'bg-green-100 text-green-800' :
+                            approvalStatus === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                          {item.approved_by_status || 'Pending'}
+                        </span>
+                      </div>
+
+                      <div className="text-sm space-y-1 mb-3">
+                        <p><span className="text-gray-500 text-xs">Dept:</span> {item.department}</p>
+                        <p><span className="text-gray-500 text-xs">Date:</span> {item.from_date ? new Date(item.from_date).toLocaleDateString() : '-'} - {item.to_date ? new Date(item.to_date).toLocaleDateString() : '-'}</p>
+                        <p><span className="text-gray-500 text-xs">Reason:</span> {item.reason}</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => openApprovalModal(item)}
+                        disabled={isFinalized}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px]"
+                      >
+                        <Edit size={16} />
+                        {isFinalized ? 'Finalized' : 'Edit / Approve'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
         {approvalModal && (
-          <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 px-4 py-6">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 px-4 py-6">
             <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
               <div className="flex items-start justify-between">
                 <div>
@@ -363,7 +404,7 @@ const LeaveManagerApproval = () => {
                   type="date"
                   value={approvalModal.from_date}
                   onChange={handleModalFieldChange}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 min-h-[44px]"
                 />
                 <label className="text-sm font-medium text-gray-700" htmlFor="modal_to_date">
                   To Date
@@ -374,7 +415,7 @@ const LeaveManagerApproval = () => {
                   type="date"
                   value={approvalModal.to_date}
                   onChange={handleModalFieldChange}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 min-h-[44px]"
                 />
               </div>
               <div className="mt-4">
@@ -386,7 +427,7 @@ const LeaveManagerApproval = () => {
                   value={actionSelections[approvalModal.requestId] || 'Approved'}
                   onChange={(event) => handleModalActionChange(event.target.value)}
                   disabled={modalLoading}
-                  className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-base text-gray-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 disabled:cursor-not-allowed min-h-[44px]"
                 >
                   <option value="Approved">Approve</option>
                   <option value="Rejected">Reject</option>
@@ -397,7 +438,7 @@ const LeaveManagerApproval = () => {
                   type="button"
                   onClick={closeApprovalModal}
                   disabled={modalLoading}
-                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px]"
                 >
                   Cancel
                 </button>
@@ -405,7 +446,7 @@ const LeaveManagerApproval = () => {
                   type="button"
                   onClick={handleModalSubmit}
                   disabled={modalLoading}
-                  className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px]"
                 >
                   {modalLoading ? 'Processing...' : 'Confirm'}
                 </button>

@@ -277,14 +277,14 @@ const LeaveRequest = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="flex w-full flex-col gap-6 px-4 sm:px-6 lg:px-10">
+    <div className="min-h-screen bg-slate-50 py-4 md:py-8">
+      <div className="flex w-full flex-col gap-6 px-3 sm:px-6 lg:px-10">
         <div className="space-y-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Leave Request</h1>
             <button
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              className="inline-flex items-center justify-center w-full md:w-auto rounded-full bg-indigo-600 px-4 py-2 min-h-[44px] text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
               <Plus size={16} className="mr-2" />
               New Leave Request
@@ -328,7 +328,7 @@ const LeaveRequest = () => {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
+                  <table className="min-w-full divide-y divide-gray-200 hidden md:table">
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -398,6 +398,59 @@ const LeaveRequest = () => {
                         ))}
                     </tbody>
                   </table>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden space-y-4">
+                    {leavesData
+                      .filter(
+                        (leave) =>
+                          selectedMonth === "all" ||
+                          isDateInMonth(leave.startDateRaw || leave.startDate, selectedMonth) ||
+                          isDateInMonth(leave.endDateRaw || leave.endDate, selectedMonth)
+                      )
+                      .map((request) => (
+                        <div key={request.id} className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">
+                                {request.startDate} - {request.endDate}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {request.days} Days
+                              </div>
+                            </div>
+                            <span
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${(request.approvedByStatus || "").toLowerCase() === "approved"
+                                ? "bg-green-100 text-green-800"
+                                : (request.approvedByStatus || "").toLowerCase() === "rejected"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                                }`}
+                            >
+                              {request.approvedByStatus}
+                            </span>
+                          </div>
+
+                          <div className="mb-3">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Reason</p>
+                            <p className="text-sm text-gray-700 mt-1">{request.reason}</p>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-3 border-t border-gray-100 text-xs text-gray-500">
+                            <div>
+                              <span className="block text-gray-400">Applied Date</span>
+                              <span className="font-medium text-gray-700">{request.appliedDate}</span>
+                            </div>
+                            {request.approveDate && (
+                              <div className="text-right">
+                                <span className="block text-gray-400">Approved Date</span>
+                                <span className="font-medium text-gray-700">{request.approveDate}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                   {leavesData.length === 0 && (
                     <div className="px-6 py-12 text-center">
                       <p className="text-gray-500">No leave requests found.</p>
@@ -433,7 +486,7 @@ const LeaveRequest = () => {
                     type="text"
                     name="employeeName"
                     value={formData.employeeName || ''}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none min-h-[44px]"
                     readOnly
                   />
                 </div>
@@ -446,7 +499,7 @@ const LeaveRequest = () => {
                     type="text"
                     name="employeeId"
                     value={formData.employeeId || ''}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none min-h-[44px]"
                     readOnly
                   />
                 </div>
@@ -459,7 +512,7 @@ const LeaveRequest = () => {
                     type="text"
                     name="designation"
                     value={formData.designation || ''}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none min-h-[44px]"
                     readOnly
                   />
                 </div>
@@ -472,7 +525,7 @@ const LeaveRequest = () => {
                     type="text"
                     name="department"
                     value={departmentValue || ''}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none min-h-[44px]"
                     readOnly
                   />
                 </div>
@@ -487,7 +540,7 @@ const LeaveRequest = () => {
                     value={formData.mobilenumber || ''}
                     onChange={handleInputChange}
                     placeholder="e.g. 8103490342"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]"
                   />
                 </div>
                 <div>
@@ -500,7 +553,7 @@ const LeaveRequest = () => {
                     value={formData.urgent_mobilenumber || ''}
                     onChange={handleInputChange}
                     placeholder="e.g. 93293232"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]"
                   />
                 </div>
 
@@ -513,7 +566,7 @@ const LeaveRequest = () => {
                     name="fromDate"
                     value={formData.fromDate}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]"
                     required
                   />
                 </div>
@@ -526,7 +579,7 @@ const LeaveRequest = () => {
                     name="toDate"
                     value={formData.toDate}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]"
                     required
                   />
                 </div>
@@ -551,7 +604,7 @@ const LeaveRequest = () => {
                     value={formData.reason}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]"
                     placeholder="Please provide reason for leave..."
                     required
                   />
@@ -561,13 +614,13 @@ const LeaveRequest = () => {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 min-h-[44px] border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className={`px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 min-h-[42px] flex items-center justify-center ${submitting ? "opacity-75 cursor-not-allowed" : ""
+                    className={`px-4 py-2 w-full md:w-auto min-h-[44px] text-white bg-indigo-600 rounded-md hover:bg-indigo-700 flex items-center justify-center ${submitting ? "opacity-75 cursor-not-allowed" : ""
                       }`}
                     disabled={submitting}
                   >

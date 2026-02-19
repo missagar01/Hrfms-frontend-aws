@@ -332,7 +332,7 @@ const AdminDashboard = () => {
                 )}
 
                 {/* Summary Cards Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6">
                     {summaryCards.map((card, index) => {
                         const Icon = card.icon;
                         return (
@@ -341,14 +341,14 @@ const AdminDashboard = () => {
                                 className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                                 style={{ backgroundImage: card.gradient }}
                             >
-                                <div className="p-4 sm:p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className={`${card.iconBg} rounded-lg p-3 shadow-md`}>
-                                            <Icon size={24} className="text-white" />
+                                <div className="p-3 sm:p-6">
+                                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                                        <div className={`${card.iconBg} rounded-lg p-2 sm:p-3 shadow-md`}>
+                                            <Icon size={18} className="text-white sm:w-6 sm:h-6" />
                                         </div>
                                     </div>
-                                    <p className={`text-xs sm:text-sm font-medium mb-1 ${card.textColor} opacity-90`}>{card.label}</p>
-                                    <h3 className={`text-2xl sm:text-3xl font-bold ${card.textColor}`}>{(card.value ?? 0).toLocaleString()}</h3>
+                                    <p className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${card.textColor} opacity-90`}>{card.label}</p>
+                                    <h3 className={`text-xl sm:text-3xl font-bold ${card.textColor}`}>{(card.value ?? 0).toLocaleString()}</h3>
                                 </div>
                             </div>
                         );
@@ -358,29 +358,28 @@ const AdminDashboard = () => {
                 {/* Attendance Card */}
                 <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-lg p-4 sm:p-6 text-white">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                        <div>
-                            <h2 className="text-lg sm:text-xl font-bold mb-2 flex items-center">
-                                <Clock size={20} className="mr-2" />
-                                Today's Attendance {attendance.date ? `(${attendance.date})` : ''}
+                        <div className="w-full">
+                            <h2 className="text-lg sm:text-xl font-bold mb-3 flex items-center">
+                                <Clock size={18} className="mr-2" />
+                                Today's Attendance <span className="text-xs sm:text-sm font-normal ml-2 opacity-90">{attendance.date ? `(${attendance.date})` : ''}</span>
                             </h2>
-                            <div className="grid grid-cols-5 gap-8 mt-4">
-                                <div>
-                                    <p className="text-xs opacity-90 mb-1">Total Active</p>
-                                    <p className="text-2xl font-bold">{attendance.totalActive}</p>
+                            <div className="grid grid-cols-3 gap-2 sm:gap-8 mt-2">
+                                <div className="bg-white/10 rounded-lg p-2 sm:p-0 sm:bg-transparent text-center sm:text-left">
+                                    <p className="text-[10px] sm:text-xs opacity-90 mb-0.5">Total Active</p>
+                                    <p className="text-xl sm:text-2xl font-bold">{attendance.totalActive}</p>
                                 </div>
-                                <div>
-                                    <p className="text-xs opacity-90 mb-1">Present</p>
-                                    <p className="text-2xl font-bold">{attendance.present}</p>
+                                <div className="bg-white/10 rounded-lg p-2 sm:p-0 sm:bg-transparent text-center sm:text-left">
+                                    <p className="text-[10px] sm:text-xs opacity-90 mb-0.5">Present</p>
+                                    <p className="text-xl sm:text-2xl font-bold">{attendance.present}</p>
                                 </div>
-                                <div>
-                                    <p className="text-xs opacity-90 mb-1">Absent</p>
-                                    <p className="text-2xl font-bold">{attendance.absent}</p>
+                                <div className="bg-white/10 rounded-lg p-2 sm:p-0 sm:bg-transparent text-center sm:text-left">
+                                    <p className="text-[10px] sm:text-xs opacity-90 mb-0.5">Absent</p>
+                                    <p className="text-xl sm:text-2xl font-bold">{attendance.absent}</p>
                                 </div>
-
                             </div>
                             {!attendance.deviceConnected && (
-                                <div className="mt-4 rounded-lg bg-red-500/20 border border-red-300/40 px-3 py-2 text-sm">
-                                    Device API connection failed for one or more machines. Live attendance logs are not available.
+                                <div className="mt-3 rounded-lg bg-red-500/20 border border-red-300/40 px-3 py-2 text-xs sm:text-sm">
+                                    Device API connection failed. Live logs unavailable.
                                 </div>
                             )}
                         </div>
