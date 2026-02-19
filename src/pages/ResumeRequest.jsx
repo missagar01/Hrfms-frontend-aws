@@ -35,6 +35,7 @@ const ResumeRequest = () => {
   const defaultEmployeeCode = user?.employee_id || user?.employee_code || '';
   const defaultPersonName = user?.user_name || user?.employee_name || '';
   const defaultDesignation = user?.designation || '';
+  const defaultDepartment = user?.department || '';
 
   const [form, setForm] = useState(() => ({
     ...initialForm,
@@ -42,7 +43,10 @@ const ResumeRequest = () => {
     person_name: defaultPersonName,
     requester_name: defaultPersonName,
     requester_designation: defaultDesignation,
+    requester_department: defaultDepartment,
   }));
+
+
 
   const [submitting, setSubmitting] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -56,8 +60,9 @@ const ResumeRequest = () => {
       person_name: prev.person_name || defaultPersonName,
       requester_name: prev.requester_name || defaultPersonName,
       requester_designation: prev.requester_designation || defaultDesignation,
+      requester_department: prev.requester_department || defaultDepartment,
     }));
-  }, [defaultEmployeeCode, defaultPersonName, defaultDesignation]);
+  }, [defaultEmployeeCode, defaultPersonName, defaultDesignation, defaultDepartment]);
 
   const employeeCodeValue = useMemo(
     () => form.employee_code || defaultEmployeeCode,
@@ -74,7 +79,13 @@ const ResumeRequest = () => {
     [form.requester_designation, defaultDesignation]
   );
 
+  // If we have a default department, we can skip fetching or just ignore the list
+  // But strictly speaking, the user might want a "read only" view which implies seeing it.
   useEffect(() => {
+    // If we already have a forced department, we typically don't need to fetch the list
+    // unless the user has no department.
+    if (defaultDepartment) return;
+
     const fetchDepartments = async () => {
       setLoadingDepartments(true);
       try {
@@ -92,7 +103,7 @@ const ResumeRequest = () => {
       }
     };
     fetchDepartments();
-  }, []);
+  }, [defaultDepartment]);
 
   const handleChange = (event) => {
     const { name, value, type } = event.target;
@@ -126,7 +137,11 @@ const ResumeRequest = () => {
       if (employeeCodeValue) payload.employee_code = employeeCodeValue;
       if (requesterNameValue) payload.requester_name = requesterNameValue;
       if (designationValue) payload.requester_designation = designationValue;
-      if (form.requester_department) payload.requester_department = form.requester_department;
+
+      // Use form state for department (it will be set either by default or selection)
+      const submitDepartment = form.requester_department || defaultDepartment;
+      if (submitDepartment) payload.requester_department = submitDepartment;
+
       if (form.request_for) payload.request_for = form.request_for;
       if (form.experience) payload.experience = form.experience;
       if (form.education) payload.education = form.education;
@@ -178,6 +193,7 @@ const ResumeRequest = () => {
         person_name: defaultPersonName,
         requester_name: defaultPersonName,
         requester_designation: defaultDesignation,
+        requester_department: defaultDepartment,
       });
     } catch (error) {
       console.error('Submit error:', error);
@@ -256,19 +272,29 @@ const ResumeRequest = () => {
               <select
                 id="requester_department"
                 name="requester_department"
-                value={form.requester_department}
+                value={form.requester_department || defaultDepartment}
                 onChange={handleChange}
-                disabled={loadingDepartments}
+                disabled={Boolean(defaultDepartment) || loadingDepartments}
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value="">
-                  {loadingDepartments ? 'Loading...' : 'Select Department'}
-                </option>
-                {departments.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
+                {/* 
+                  If defaultDepartment is present, only show that option.
+                  Otherwise, show the placeholder + loaded departments.
+                */}
+                {defaultDepartment ? (
+                  <option value={defaultDepartment}>{defaultDepartment}</option>
+                ) : (
+                  <>
+                    <option value="">
+                      {loadingDepartments ? 'Loading...' : 'Select Department'}
+                    </option>
+                    {departments.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
             </div>
 
