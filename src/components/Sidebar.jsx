@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+
 const Sidebar = ({ isOpen = false, onClose }) => {
   const { user, logout, pageAccess } = useAuth();
   const navigate = useNavigate();
