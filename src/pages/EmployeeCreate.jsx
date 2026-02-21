@@ -994,8 +994,8 @@ const EmployeeCreate = () => {
                           >
                             <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.employee_id || '-'}</td>
                             <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium">{employee?.user_name || '-'}</td>
-                            <td className="hidden sm:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.email || '-'}</td>
-                            <td className="hidden md:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.mobile_number || '-'}</td>
+                            <td className="hidden sm:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.email_id || '-'}</td>
+                            <td className="hidden md:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.number || '-'}</td>
                             <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.department || '-'}</td>
                             <td className="hidden lg:table-cell px-4 py-3 text-xs sm:text-sm">{employee?.designation || '-'}</td>
                             <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">{employee?.role || '-'}</td>
