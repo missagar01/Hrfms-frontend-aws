@@ -11,6 +11,33 @@ import { getEmployeeFullDetails } from '../api/dashboardApi';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
+const ImageWithFallback = ({ src, alt, className, onClick, fallbackIcon: FallbackIcon }) => {
+    const [error, setError] = useState(false);
+
+    useEffect(() => {
+        setError(false);
+    }, [src]);
+
+    if (error || !src) {
+        return (
+            <div className={`${className} flex flex-col items-center justify-center bg-gray-100 text-gray-300 gap-1`}>
+                <FallbackIcon size={className.includes('w-28') || className.includes('w-full') ? 40 : 24} strokeWidth={1} />
+                {error && src && <small className="text-[8px]">Error</small>}
+            </div>
+        );
+    }
+
+    return (
+        <img
+            src={src}
+            alt={alt}
+            className={className}
+            onClick={onClick}
+            onError={() => setError(true)}
+        />
+    );
+};
+
 const EmployeeDetailsPage = () => {
     const { employeeId } = useParams();
     const navigate = useNavigate();
@@ -112,14 +139,13 @@ const EmployeeDetailsPage = () => {
 
                             <div className="relative mb-4 pt-2">
                                 <div className="w-28 h-28 rounded-[1.8rem] bg-gradient-to-tr from-indigo-500 to-purple-500 p-1 shadow-xl">
-                                    <div className="w-full h-full bg-white rounded-[1.6rem] p-1 transition-transform hover:scale-105 duration-500">
-                                        {data.profile.profile_img ? (
-                                            <img src={data.profile.profile_img} alt="Profile" className="w-full h-full object-cover rounded-[1.3rem]" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-200">
-                                                <User size={40} strokeWidth={1} />
-                                            </div>
-                                        )}
+                                    <div className="w-full h-full bg-white rounded-[1.6rem] p-1 transition-transform hover:scale-105 duration-500 overflow-hidden">
+                                        <ImageWithFallback
+                                            src={data.profile.profile_img}
+                                            alt="Profile"
+                                            className="w-full h-full object-cover rounded-[1.3rem]"
+                                            fallbackIcon={User}
+                                        />
                                     </div>
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 bg-white p-1.5 rounded-xl shadow-lg border border-gray-50">
@@ -212,28 +238,70 @@ const EmployeeDetailsPage = () => {
                             </div>
                         </div>
 
-                        {/* Document Quick Access - Moved here and Stacked */}
-                        {data.profile.document_img && (
-                            <div className="bg-white rounded-[1.5rem] p-3 shadow-lg shadow-gray-200/40 border border-gray-100 overflow-hidden relative group">
+                        {/* Document Quick Access - Updated for Multiple Documents & PDF */}
+                        {data.profile.document_img && (Array.isArray(data.profile.document_img) ? data.profile.document_img : [data.profile.document_img]).length > 0 && (
+                            <div className="bg-white rounded-[1.5rem] p-4 shadow-lg shadow-gray-200/40 border border-gray-100 overflow-hidden relative group">
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-400"></div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <h4 className="font-black text-gray-900 text-[9px] flex items-center gap-2">
-                                        <FileText size={12} className="text-emerald-500" /> SYSTEM VERIFICATION DOCUMENT
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="font-black text-gray-900 text-[10px] flex items-center gap-2 uppercase tracking-tight">
+                                        <FileText size={14} className="text-emerald-500" /> System Verification Documents
                                     </h4>
-                                    <div className="flex items-center gap-2">
-                                        <a href={data.profile.document_img} target="_blank" rel="noreferrer" className="p-1 bg-gray-50 hover:bg-emerald-50 text-gray-400 hover:text-emerald-600 rounded-lg transition-all shadow-sm">
-                                            <Download size={12} />
-                                        </a>
-                                    </div>
+                                    <span className="px-2 py-0.5 bg-gray-50 rounded text-[8px] font-black text-gray-400 uppercase">
+                                        {(Array.isArray(data.profile.document_img) ? data.profile.document_img : [data.profile.document_img]).length} Files
+                                    </span>
                                 </div>
-                                <div className="relative rounded-xl overflow-hidden bg-gray-50 group-hover:scale-[1.01] transition-transform duration-500 shadow-inner">
-                                    <img src={data.profile.document_img} alt="Credential" className="w-full max-h-32 object-cover opacity-90 group-hover:opacity-100" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 to-transparent"></div>
-                                    <div className="absolute bottom-2 left-3">
-                                        <p className="text-white text-[8px] font-black uppercase tracking-widest flex items-center gap-2">
-                                            <ShieldCheck size={9} /> Authenticated Node
-                                        </p>
-                                    </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {(Array.isArray(data.profile.document_img) ? data.profile.document_img : [data.profile.document_img]).map((url, idx) => {
+                                        const isPdf = url.toLowerCase().endsWith('.pdf');
+                                        const fileName = url.split('/').pop().split('-').pop(); // Show cleaner name
+
+                                        return (
+                                            <div key={idx} className="relative rounded-xl overflow-hidden bg-gray-50 group/doc border border-gray-100 transition-all hover:border-emerald-200 shadow-sm">
+                                                {isPdf ? (
+                                                    <div className="flex flex-col items-center justify-center p-6 gap-2 text-red-500 min-h-[140px]">
+                                                        <div className="p-3 bg-red-50 rounded-2xl">
+                                                            <FileText size={32} />
+                                                        </div>
+                                                        <span className="text-[9px] text-gray-600 font-black truncate max-w-full px-2 uppercase tracking-tighter">{fileName}</span>
+                                                        <a
+                                                            href={url}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="mt-1 flex items-center gap-1.5 px-3 py-1 bg-white text-emerald-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm hover:bg-emerald-50 transition-colors"
+                                                        >
+                                                            <Download size={10} /> View PDF
+                                                        </a>
+                                                    </div>
+                                                ) : (
+                                                    <div className="relative aspect-video sm:aspect-square flex items-center justify-center overflow-hidden h-full min-h-[140px]">
+                                                        <ImageWithFallback
+                                                            src={url}
+                                                            alt={`Document ${idx + 1}`}
+                                                            className="w-full h-full object-cover opacity-90 group-hover/doc:opacity-100 transition-opacity cursor-pointer"
+                                                            onClick={() => window.open(url, '_blank')}
+                                                            fallbackIcon={FileText}
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent opacity-0 group-hover/doc:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                                                            <div className="flex items-center justify-between">
+                                                                <p className="text-white text-[8px] font-black uppercase tracking-widest truncate max-w-[120px]">
+                                                                    {fileName}
+                                                                </p>
+                                                                <a
+                                                                    href={url}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="p-1.5 bg-white/20 backdrop-blur-md text-white rounded-lg hover:bg-white/40 transition-colors"
+                                                                >
+                                                                    <Download size={12} />
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}

@@ -6,6 +6,33 @@ import { createEmployee, deleteEmployee, getEmployees, updateEmployee } from '..
 import { getEmployeeFullDetails } from '../api/dashboardApi';
 import { useAuth } from '../context/AuthContext';
 
+const ImageWithFallback = ({ src, alt, className, onClick, fallbackIcon: FallbackIcon }) => {
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (error || !src) {
+    return (
+      <div className={`${className} flex flex-col items-center justify-center bg-gray-100 text-gray-300 gap-1`}>
+        <FallbackIcon size={className.includes('h-32') || className.includes('h-24') ? 40 : 20} strokeWidth={1} />
+        {error && src && <small className="text-[8px]">Error</small>}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onClick={onClick}
+      onError={() => setError(true)}
+    />
+  );
+};
+
 // Available routes for page access
 const availableRoutes = [
   { path: '/dashboard', label: 'Dashboard' },
@@ -40,7 +67,7 @@ const initialForm = {
   password: '',
   page_access: [],
   profile_img: null,
-  document_img: null,
+  document_img: [],
 };
 
 const EmployeeCreate = () => {
@@ -59,7 +86,7 @@ const EmployeeCreate = () => {
   const [showPageAccessDropdown, setShowPageAccessDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const [profileImgPreview, setProfileImgPreview] = useState(null);
-  const [documentImgPreview, setDocumentImgPreview] = useState(null);
+  const [documentPreviews, setDocumentPreviews] = useState([]);
   const navigate = useNavigate();
   const { token, user } = useAuth();
 
@@ -130,27 +157,49 @@ const EmployeeCreate = () => {
 
   const handleChange = (event) => {
     const { name, value, files } = event.target;
-    if (files && files[0]) {
-      const file = files[0];
+    if (files && files.length > 0) {
       if (name === 'profile_img') {
+        const file = files[0];
         setForm((prev) => ({ ...prev, [name]: file }));
-        // Create preview
         const reader = new FileReader();
         reader.onloadend = () => {
           setProfileImgPreview(reader.result);
         };
         reader.readAsDataURL(file);
       } else if (name === 'document_img') {
-        setForm((prev) => ({ ...prev, [name]: file }));
-        // Create preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setDocumentImgPreview(reader.result);
-        };
-        reader.readAsDataURL(file);
+        const newFiles = Array.from(files);
+        setForm((prev) => ({
+          ...prev,
+          [name]: [...(Array.isArray(prev.document_img) ? prev.document_img : []), ...newFiles]
+        }));
+
+        newFiles.forEach(file => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setDocumentPreviews(prev => [...prev, {
+              url: reader.result,
+              name: file.name,
+              type: file.type,
+              isNew: true
+            }]);
+          };
+          reader.readAsDataURL(file);
+        });
       }
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const removeDocument_img = (index) => {
+    const docToRemove = documentPreviews[index];
+    setDocumentPreviews(prev => prev.filter((_, i) => i !== index));
+
+    if (docToRemove.isNew) {
+      setForm(prev => ({
+        ...prev,
+        document_img: prev.document_img.filter(f => f.name !== docToRemove.name)
+      }));
     }
   };
 
@@ -326,6 +375,12 @@ const EmployeeCreate = () => {
         payload.append('designation', currentFormState.designation.trim());
         payload.append('role', currentFormState.role);
         payload.append('status', currentFormState.status);
+
+        // Explicitly send the list of remaining existing documents
+        const existingDocs = documentPreviews
+          .filter(doc => !doc.isNew)
+          .map(doc => doc.url);
+        payload.append('existing_documents', JSON.stringify(existingDocs));
         payload.append('page_access', JSON.stringify(pageAccessArray));
 
         if (currentFormState.password) {
@@ -337,8 +392,13 @@ const EmployeeCreate = () => {
           payload.append('profile_img', currentFormState.profile_img);
         }
 
-        if (currentFormState.document_img instanceof File) {
-          payload.append('document_img', currentFormState.document_img);
+        if (currentFormState.document_img) {
+          const docs = Array.isArray(currentFormState.document_img) ? currentFormState.document_img : [currentFormState.document_img];
+          docs.forEach(doc => {
+            if (doc instanceof File) {
+              payload.append('document_img', doc);
+            }
+          });
         }
       } else {
         // Use regular JSON payload
@@ -353,6 +413,9 @@ const EmployeeCreate = () => {
           status: currentFormState.status,
           password: currentFormState.password,
           page_access: pageAccessArray,
+          existing_documents: documentPreviews
+            .filter(doc => !doc.isNew)
+            .map(doc => doc.url),
         };
 
         if (editingId && !payload.password) {
@@ -380,7 +443,7 @@ const EmployeeCreate = () => {
       toast.success(isEditing ? 'Employee updated successfully' : 'Employee created successfully');
       setForm(initialForm);
       setProfileImgPreview(null);
-      setDocumentImgPreview(null);
+      setDocumentPreviews([]);
       setEditingId(null);
       setShowForm(false);
       setShowEditModal(false);
@@ -416,12 +479,23 @@ const EmployeeCreate = () => {
       status: employee?.status ?? 'Active',
       password: '',
       profile_img: employee?.profile_img || null,
-      document_img: employee?.document_img || null,
+      document_img: Array.isArray(employee?.document_img) ? employee.document_img : (employee?.document_img ? [employee.document_img] : []),
     };
 
     // Set preview images if they exist
     setProfileImgPreview(employee?.profile_img || null);
-    setDocumentImgPreview(employee?.document_img || null);
+
+    if (employee?.document_img) {
+      const docs = Array.isArray(employee.document_img) ? employee.document_img : [employee.document_img];
+      setDocumentPreviews(docs.map(url => ({
+        url,
+        name: url.split('/').pop(),
+        type: url.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
+        isNew: false
+      })));
+    } else {
+      setDocumentPreviews([]);
+    }
 
     setOriginalPayload({
       employee_id: formValues.employee_id,
@@ -469,7 +543,7 @@ const EmployeeCreate = () => {
   const handleReset = () => {
     setForm(initialForm);
     setProfileImgPreview(null);
-    setDocumentImgPreview(null);
+    setDocumentPreviews([]);
     setEditingId(null);
     setOriginalPayload(null);
   };
@@ -479,7 +553,7 @@ const EmployeeCreate = () => {
     setEditingId(null);
     setForm(initialForm);
     setProfileImgPreview(null);
-    setDocumentImgPreview(null);
+    setDocumentPreviews([]);
     setOriginalPayload(null);
   };
 
@@ -670,32 +744,53 @@ const EmployeeCreate = () => {
           />
           {profileImgPreview && (
             <div className="mt-2">
-              <img
+              <ImageWithFallback
                 src={profileImgPreview}
                 alt="Profile preview"
                 className="h-24 w-24 rounded-lg object-cover border border-gray-300"
+                fallbackIcon={User}
               />
             </div>
           )}
         </div>
 
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="document_img">Document Image</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="document_img">Documents (Images/PDF)</label>
           <input
             id="document_img"
             name="document_img"
             type="file"
-            accept="image/*"
+            multiple
+            accept="image/*,.pdf"
             onChange={handleChange}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
           />
-          {documentImgPreview && (
-            <div className="mt-2">
-              <img
-                src={documentImgPreview}
-                alt="Document preview"
-                className="h-24 w-24 rounded-lg object-cover border border-gray-300"
-              />
+          {documentPreviews.length > 0 && (
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+              {documentPreviews.map((doc, index) => (
+                <div key={index} className="relative group rounded-lg border border-gray-200 bg-gray-50 p-2 flex flex-col items-center gap-1">
+                  {doc.type.includes('pdf') || doc.url.toLowerCase().endsWith('.pdf') ? (
+                    <div className="flex flex-col items-center gap-1 text-red-500">
+                      <FileText size={32} />
+                      <span className="text-[10px] text-gray-600 truncate max-w-[80px]">{doc.name}</span>
+                    </div>
+                  ) : (
+                    <ImageWithFallback
+                      src={doc.url}
+                      alt={`Preview ${index}`}
+                      className="h-16 w-16 rounded object-cover"
+                      fallbackIcon={FileText}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeDocument_img(index)}
+                    className="absolute -top-2 -right-2 p-1 bg-red-100 text-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>

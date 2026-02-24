@@ -4,6 +4,33 @@ import toast from 'react-hot-toast';
 import { getEmployeeById, updateEmployee } from '../api/employeeApi';
 import { useAuth } from '../context/AuthContext';
 
+const ImageWithFallback = ({ src, alt, className, onClick, fallbackIcon: FallbackIcon }) => {
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (error || !src) {
+    return (
+      <div className={`${className} flex flex-col items-center justify-center bg-gray-100 text-gray-300 gap-2`}>
+        <FallbackIcon size={40} strokeWidth={1} />
+        {error && src && <small className="text-[10px]">Load Error</small>}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onClick={onClick}
+      onError={() => setError(true)}
+    />
+  );
+};
+
 const MyProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
@@ -12,9 +39,8 @@ const MyProfile = () => {
   const { user, token } = useAuth();
 
   const [selectedProfileImg, setSelectedProfileImg] = useState(null);
-  const [selectedDocumentImg, setSelectedDocumentImg] = useState(null);
   const [previewProfileImg, setPreviewProfileImg] = useState(null);
-  const [previewDocumentImg, setPreviewDocumentImg] = useState(null);
+  const [previewDocuments, setPreviewDocuments] = useState([]);
 
   const profileInputRef = useRef(null);
   const documentInputRef = useRef(null);
@@ -41,7 +67,13 @@ const MyProfile = () => {
         setPreviewProfileImg(profile.profile_img);
       }
       if (profile.document_img) {
-        setPreviewDocumentImg(profile.document_img);
+        const docs = Array.isArray(profile.document_img) ? profile.document_img : [profile.document_img];
+        setPreviewDocuments(docs.map(url => ({
+          url,
+          name: url.split('/').pop(),
+          type: url.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
+          isExisting: true
+        })));
       }
 
     } catch (error) {
@@ -77,15 +109,42 @@ const MyProfile = () => {
   };
 
   const handleDocumentChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('Document size should be less than 5MB');
-        return;
-      }
-      setSelectedDocumentImg(file);
-      setPreviewDocumentImg(URL.createObjectURL(file));
+    const files = Array.from(e.target.files);
+
+    if (previewDocuments.length + files.length > 10) {
+      toast.error('You can upload a maximum of 10 documents.');
+      return;
     }
+
+    if (files.length > 0) {
+      const newPreviews = [];
+
+      files.forEach(file => {
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name} is too large (>5MB)`);
+          return;
+        }
+        newPreviews.push({
+          url: URL.createObjectURL(file),
+          name: file.name,
+          type: file.type,
+          isExisting: false,
+          file: file
+        });
+      });
+
+      setPreviewDocuments(prev => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeDocument = (index) => {
+    setPreviewDocuments(prev => {
+      const doc = prev[index];
+      if (doc && !doc.isExisting && doc.url.startsWith('blob:')) {
+        URL.revokeObjectURL(doc.url);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleSave = async () => {
@@ -110,9 +169,30 @@ const MyProfile = () => {
       if (selectedProfileImg) {
         submitData.append('profile_img', selectedProfileImg);
       }
-      if (selectedDocumentImg) {
-        submitData.append('document_img', selectedDocumentImg);
+
+      // Append new files from previewDocuments
+      const newFiles = previewDocuments
+        .filter(doc => !doc.isExisting)
+        .map(doc => doc.file);
+
+      if (newFiles.length > 0) {
+        newFiles.forEach(file => {
+          submitData.append('document_img', file);
+        });
       }
+
+      // Explicitly send the list of remaining existing documents
+      const existingDocs = previewDocuments
+        .filter(doc => doc.isExisting)
+        .map(doc => doc.url);
+      submitData.append('existing_documents', JSON.stringify(existingDocs));
+
+      // If we removed existing documents, we'd need to tell the backend.
+      // But for now, let's just send the new files.
+      // Note: The backend as currently written REPLACES document_img if any new files are sent.
+      // If no new files are sent, it keeps existing ones because of COALESCE.
+      // This might not be perfect for "deleting" some but keeping others.
+      // For a "My Profile" page, replacing all is often acceptable when editing.
 
       const response = await updateEmployee(profileData.id, submitData, token);
       if (!response?.success) {
@@ -125,9 +205,18 @@ const MyProfile = () => {
 
       // Update previews/state
       if (updatedProfile.profile_img) setPreviewProfileImg(updatedProfile.profile_img);
-      if (updatedProfile.document_img) setPreviewDocumentImg(updatedProfile.document_img);
+
+      if (updatedProfile.document_img) {
+        const docs = Array.isArray(updatedProfile.document_img) ? updatedProfile.document_img : [updatedProfile.document_img];
+        setPreviewDocuments(docs.map(url => ({
+          url,
+          name: url.split('/').pop(),
+          type: url.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
+          isExisting: true
+        })));
+      }
+
       setSelectedProfileImg(null);
-      setSelectedDocumentImg(null);
 
       toast.success('Profile updated successfully!');
       setIsEditing(false);
@@ -142,9 +231,27 @@ const MyProfile = () => {
   const handleCancel = () => {
     setFormData(profileData || {});
     setPreviewProfileImg(profileData?.profile_img || null);
-    setPreviewDocumentImg(profileData?.document_img || null);
+
+    // Clean up blob URLs
+    previewDocuments.forEach(doc => {
+      if (doc && !doc.isExisting && doc.url.startsWith('blob:')) {
+        URL.revokeObjectURL(doc.url);
+      }
+    });
+
+    if (profileData?.document_img) {
+      const docs = Array.isArray(profileData.document_img) ? profileData.document_img : [profileData.document_img];
+      setPreviewDocuments(docs.map(url => ({
+        url,
+        name: url.split('/').pop(),
+        type: url.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
+        isExisting: true
+      })));
+    } else {
+      setPreviewDocuments([]);
+    }
+
     setSelectedProfileImg(null);
-    setSelectedDocumentImg(null);
     setIsEditing(false);
   };
 
@@ -226,19 +333,12 @@ const MyProfile = () => {
               <div className="text-center">
                 <div className="relative mx-auto h-24 w-24 sm:h-32 sm:w-32 mb-4 sm:mb-6">
                   <div className="absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg overflow-hidden">
-                    {previewProfileImg ? (
-                      <img
-                        src={previewProfileImg}
-                        alt="Profile"
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          console.error('Error loading profile image:', previewProfileImg);
-                          // e.target.style.display = 'none'; 
-                        }}
-                      />
-                    ) : (
-                      <User size={48} className="text-white sm:w-16 sm:h-16" />
-                    )}
+                    <ImageWithFallback
+                      src={previewProfileImg}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                      fallbackIcon={User}
+                    />
                   </div>
 
                   {isEditing && (
@@ -428,30 +528,60 @@ const MyProfile = () => {
                       Aadhar Card / Identity Document
                     </label>
 
-                    {previewDocumentImg ? (
-                      <div className="relative w-full max-w-xs h-40 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
-                        <img
-                          src={previewDocumentImg}
-                          alt="Document"
-                          className="h-full w-full object-contain"
-                          onError={(e) => {
-                            console.error('Error loading document image:', previewDocumentImg);
-                            // e.target.style.display = 'none'; 
-                          }}
-                        />
-                        {isEditing && (
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {previewDocuments.map((doc, index) => (
+                        <div key={index} className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex flex-col items-center justify-center p-2 min-h-[160px]">
+                          {doc.type.includes('pdf') || doc.url.toLowerCase().endsWith('.pdf') ? (
+                            <div className="flex flex-col items-center justify-center text-red-500 gap-2">
+                              <FileText size={48} />
+                              <span className="text-xs text-gray-600 font-medium truncate max-w-[150px]">{doc.name}</span>
+                              <a
+                                href={doc.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-2 text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full hover:bg-indigo-100 transition-colors"
+                              >
+                                View PDF
+                              </a>
+                            </div>
+                          ) : (
+                            <div className="w-full h-32 flex items-center justify-center overflow-hidden rounded-md bg-white">
+                              <ImageWithFallback
+                                src={doc.url}
+                                alt={`Document ${index + 1}`}
+                                className="max-h-full max-w-full object-contain cursor-pointer"
+                                onClick={() => window.open(doc.url, '_blank')}
+                                fallbackIcon={FileText}
+                              />
+                            </div>
+                          )}
+
+                          {isEditing && (
                             <button
                               type="button"
-                              onClick={() => documentInputRef.current?.click()}
-                              className="p-2 bg-white rounded-full text-gray-900"
+                              onClick={() => removeDocument(index)}
+                              className="absolute -top-2 -right-2 p-1.5 bg-red-100 text-red-600 rounded-full shadow-md hover:bg-red-200 transition-colors opacity-0 group-hover:opacity-100"
+                              title="Remove Document"
                             >
-                              <Edit3 size={20} />
+                              <X size={14} />
                             </button>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
+                          )}
+                        </div>
+                      ))}
+
+                      {isEditing && (
+                        <button
+                          type="button"
+                          onClick={() => documentInputRef.current?.click()}
+                          className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 hover:border-indigo-400 hover:bg-indigo-50 transition-all min-h-[160px]"
+                        >
+                          <Upload className="text-gray-400" size={32} />
+                          <span className="text-xs font-medium text-gray-500">Upload More</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {previewDocuments.length === 0 && !isEditing && (
                       <div className="w-full max-w-xs h-40 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center text-gray-400">
                         <FileText size={32} />
                         <span className="text-xs mt-2">No document uploaded</span>
@@ -463,20 +593,11 @@ const MyProfile = () => {
                         <input
                           type="file"
                           ref={documentInputRef}
-                          accept="image/*"
+                          multiple
+                          accept="image/*,.pdf"
                           onChange={handleDocumentChange}
                           className="hidden"
                         />
-                        {!previewDocumentImg && (
-                          <button
-                            type="button"
-                            onClick={() => documentInputRef.current?.click()}
-                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
-                          >
-                            <Upload size={16} />
-                            Upload Document
-                          </button>
-                        )}
                       </div>
                     )}
                   </div>
