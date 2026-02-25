@@ -3,6 +3,7 @@ import { CheckCircle, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getLeaveRequests, updateLeaveRequest } from '../api/leaveRequestApi';
 import { useAuth } from '../context/AuthContext';
+import useAutoSync from '../hooks/useAutoSync';
 
 const CommercialHeadApproval = () => {
     const { token, user } = useAuth();
@@ -19,13 +20,6 @@ const CommercialHeadApproval = () => {
             .toLowerCase()
             .replace(/\s+/g, ' ');
 
-
-
-
-
-    // HOD to Department Mapping based on the provided table
-    // HOD to Department Mapping based on the provided table
-    // Keys are normalized (lowercase, no spaces) versions of the user_names in the database
     const HOD_DEPARTMENT_MAPPING = {
         'ajitkumargupta': ['SMS ELECTRICAL', 'SMS MAINTENANCE', 'PROJECT'],
         'shaileshchitre': ['CCM ELECTRICAL', 'STRIP MILL ELECTRICAL', 'STRIP MILL MAINTENANCE', 'STRIP MILL PRODUCTION', 'WORKSHOP'], // Matches 'Shailesh Chitre'
@@ -39,35 +33,38 @@ const CommercialHeadApproval = () => {
 
     const effectiveDepartments = useMemo(() => {
         if (!user) return [];
-
-        // Normalize the logged-in user's name for matching
-        // Example: "Amit Tiwari" -> "amittiwari", "ajitGupta" -> "ajitgupta"
         const userName = (user.user_name || user.employee_name || user.Name || '').toString().toLowerCase().replace(/\s+/g, '');
 
-        // Find matching HOD departments
-        // We check if any key in the mapping is contained in the username or vice versa, 
-        // to handle potential variations like "Mr. Ajit Gupta" vs "Ajit Gupta".
-        // But for "camelCase" database names like "amitTiwari", the exact strip-space match should work best.
-
-        // Direct match attempt first
         if (HOD_DEPARTMENT_MAPPING[userName]) {
             return HOD_DEPARTMENT_MAPPING[userName];
         }
-
-        // Fallback: Check if keys are partial matches or fuzzy
-        // The user mentioned "user_name camalcase me hai" (user_name is camelCase)
-        // so stripping spaces from map keys (done manually above) and comparing to stripped username is sufficient.
-
         return [];
     }, [user]);
 
-    const fetchData = useCallback(async () => {
+    // List of Manager/HOD IDs or usernames whose leave requests bypass the standard manager approval step
+    // So that the Commercial Head can see and approve them directly.
+    const BYPASS_MANAGER_APPROVAL_IDS = useMemo(() => new Set([
+        's05777', 's00658', 's00510', 's00061', 's03942',
+        's00037', 's02725', 's00019', 's00045', 's04578',
+        's09505', 's00151', 's00016', 's08547', 's09578',
+        's00006', 's00143', 's08377', 's08472', 's09698', 's00256',
+        'deepakbhalla', 'tejbahadur', 'danveersingh', 'shrirampatle',
+        'sparshjha', 'rohan', 'dhanjiyadav', 'anupbopche', 'hulas',
+        'mantuanandghosh', 'kavisingh', 'ravisingh', 'grammohanrao',
+        'mukeshpatle', 'krameshkumar', 'dcgoutam', 'dcgautam',
+        'anilmishra', 'dineshbandhe', 'ambikapandey', 'jhaneshwarsahu',
+        'manishkurrey', 'amittiwari'
+    ]), []);
+
+    const fetchData = useCallback(async (isAutoSync = false) => {
         if (!token) {
             setItems([]);
             return;
         }
 
-        setLoading(true);
+        if (!isAutoSync) {
+            setLoading(true);
+        }
         try {
             const response = await getLeaveRequests(token);
             const data = Array.isArray(response?.data) ? response.data : [];
@@ -78,12 +75,14 @@ const CommercialHeadApproval = () => {
 
             // Filtering logic for Commercial Head
             const filtered = data.filter((item) => {
-                // Must be approved by Manager first
-                if (normalizeValue(item.approved_by_status) !== 'approved') {
+                const itemEmpId = normalizeValue(item.employee_id);
+                const itemUserName = normalizeValue(item.user_name);
+                const isBypassId = BYPASS_MANAGER_APPROVAL_IDS.has(itemEmpId) || BYPASS_MANAGER_APPROVAL_IDS.has(itemUserName);
+
+                // If not a bypass ID, must be approved by Manager first
+                if (!isBypassId && normalizeValue(item.approved_by_status) !== 'approved') {
                     return false;
                 }
-
-
 
                 const itemDept = normalizeValue(item.department);
                 if (!itemDept || normalizedDepartments.size === 0) {
@@ -112,13 +111,18 @@ const CommercialHeadApproval = () => {
         } catch (error) {
             toast.error(error?.message || 'Failed to load leave requests.');
         } finally {
-            setLoading(false);
+            if (!isAutoSync) {
+                setLoading(false);
+            }
         }
-    }, [token, effectiveDepartments]);
+    }, [token, effectiveDepartments, BYPASS_MANAGER_APPROVAL_IDS]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // Enable auto-sync every 10 seconds
+    useAutoSync(() => fetchData(true), 10000);
 
     const formatDateForInput = (value) => {
         if (!value) {
@@ -143,14 +147,23 @@ const CommercialHeadApproval = () => {
         const selectedStatus = actionSelections[requestId] || 'Approved';
         const approvalLabel = selectedStatus === 'Rejected' ? 'Rejected' : 'Approved';
 
+        // Find the specific item to check if it's a bypass ID
+        const targetItem = items.find(item => item.id === requestId);
+        const itemEmpId = normalizeValue(targetItem?.employee_id);
+        const itemUserName = normalizeValue(targetItem?.user_name);
+        const isBypassId = BYPASS_MANAGER_APPROVAL_IDS.has(itemEmpId) || BYPASS_MANAGER_APPROVAL_IDS.has(itemUserName);
+
         // For Commercial Head page, we update commercial_head_status
         const payload = {
             commercial_head_status: approvalLabel,
-            // We don't necessarily want to update from/to date here unless the Commercial Head should be able to,
-            // but keeping it consistent with the other page's UI for now.
             from_date: from_date || null,
             to_date: to_date || null,
         };
+
+        // If it's a bypass ID and we are approving, also clear the manager status if not already approved
+        if (isBypassId && approvalLabel === 'Approved') {
+            payload.approved_by_status = 'Approved';
+        }
 
         try {
             const response = await updateLeaveRequest(requestId, payload, token);

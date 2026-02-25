@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import { useAutoSync } from '../hooks/useAutoSync';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Pencil, Trash2, UserPlus, X, ChevronDown, Calendar, MapPin, Plane, Ticket, Clock, Briefcase, User, Mail, Phone, Building, Briefcase as DesignationIcon, CheckCircle2, XCircle, Eye, ShieldCheck, FileText, ExternalLink, Download } from 'lucide-react';
@@ -95,12 +96,14 @@ const EmployeeCreate = () => {
 
   const getEmployeeId = (employee) => employee?.id ?? employee?._id ?? employee?.employee_id;
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async (isAutoSync = false) => {
     if (!token) {
       return;
     }
 
-    setTableLoading(true);
+    if (!isAutoSync) {
+      setTableLoading(true);
+    }
     setTableError('');
     try {
       const response = await getEmployees(token);
@@ -109,13 +112,17 @@ const EmployeeCreate = () => {
     } catch (error) {
       setTableError(error?.message || 'Failed to load employees.');
     } finally {
-      setTableLoading(false);
+      if (!isAutoSync) {
+        setTableLoading(false);
+      }
     }
-  };
+  }, [token]);
+
+  useAutoSync(fetchEmployees, 10000);
 
   useEffect(() => {
     fetchEmployees();
-  }, [token]);
+  }, [fetchEmployees]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

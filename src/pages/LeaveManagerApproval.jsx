@@ -3,6 +3,7 @@ import { CheckCircle, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getLeaveRequests, updateLeaveRequest } from '../api/leaveRequestApi';
 import { useAuth } from '../context/AuthContext';
+import useAutoSync from '../hooks/useAutoSync';
 
 const LeaveManagerApproval = () => {
   const { token, user } = useAuth();
@@ -102,14 +103,16 @@ const LeaveManagerApproval = () => {
 
   const canApprove = true;
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isAutoSync = false) => {
     if (!token) {
       setItems([]);
       return;
     }
 
 
-    setLoading(true);
+    if (!isAutoSync) {
+      setLoading(true);
+    }
     try {
       const response = await getLeaveRequests(token);
       const data = Array.isArray(response?.data) ? response.data : [];
@@ -117,10 +120,19 @@ const LeaveManagerApproval = () => {
         effectiveDepartments.map(normalizeValue).filter(Boolean)
       );
 
+      // Get logged-in manager's employee_id to exclude their own requests
+      const loggedInEmployeeId = normalizeValue(user?.employee_id);
+
       // Use exact match only for department filtering
       const filtered = data.filter((item) => {
         const itemDept = normalizeValue(item.department);
         if (!itemDept || normalizedDepartments.size === 0) {
+          return false;
+        }
+
+        // Exclude the logged-in manager's own leave requests
+        const itemEmployeeId = normalizeValue(item.employee_id);
+        if (loggedInEmployeeId && itemEmployeeId && itemEmployeeId === loggedInEmployeeId) {
           return false;
         }
 
@@ -149,13 +161,18 @@ const LeaveManagerApproval = () => {
     } catch (error) {
       toast.error(error?.message || 'Failed to load leave requests.');
     } finally {
-      setLoading(false);
+      if (!isAutoSync) {
+        setLoading(false);
+      }
     }
-  }, [token, effectiveDepartments]);
+  }, [token, effectiveDepartments, user?.employee_id]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Enable auto-sync every 10 seconds
+  useAutoSync(() => fetchData(true), 10000);
 
   const formatDateForInput = (value) => {
     if (!value) {

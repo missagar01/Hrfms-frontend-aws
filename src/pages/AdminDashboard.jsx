@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
     BarChart,
     Bar,
@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardStats } from '../api/dashboardApi';
+import useAutoSync from '../hooks/useAutoSync';
 
 const STATUS_COLORS = ['#10B981', '#EF4444', '#3B82F6', '#6366F1', '#F59E0B', '#EC4899', '#8B5CF6'];
 const CHART_COLORS = {
@@ -108,102 +109,97 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        let isMounted = true;
+    const loadDashboard = useCallback(async (isAutoSync = false) => {
+        if (!token) {
+            setLoading(false);
+            return;
+        }
 
-        const loadDashboard = async () => {
-            if (!token) {
-                setLoading(false);
-                return;
-            }
-
+        if (!isAutoSync) {
             setLoading(true);
-            setError(null);
+        }
+        setError(null);
 
-            try {
-                // Admin dashboard call - explicit no params or whatever default
-                const response = await getDashboardStats(token);
-                if (!isMounted) return;
+        try {
+            const response = await getDashboardStats(token);
+            const payload = response?.data ?? {};
 
-                const payload = response?.data ?? {};
+            setSummary({
+                totalEmployees: payload.summary?.totalEmployees ?? 0,
+                activeEmployees: payload.summary?.activeEmployees ?? 0,
+                resignedEmployees: payload.summary?.resignedEmployees ?? 0,
+                leftThisMonth: payload.summary?.leftThisMonth ?? 0
+            });
 
-                setSummary({
-                    totalEmployees: payload.summary?.totalEmployees ?? 0,
-                    activeEmployees: payload.summary?.activeEmployees ?? 0,
-                    resignedEmployees: payload.summary?.resignedEmployees ?? 0,
-                    leftThisMonth: payload.summary?.leftThisMonth ?? 0
-                });
+            setLeaveRequests({
+                total: payload.leaveRequests?.total ?? 0,
+                approved: payload.leaveRequests?.approved ?? 0,
+                pending: payload.leaveRequests?.pending ?? 0,
+                rejected: payload.leaveRequests?.rejected ?? 0,
+                hrApproved: payload.leaveRequests?.hrApproved ?? 0
+            });
 
-                setLeaveRequests({
-                    total: payload.leaveRequests?.total ?? 0,
-                    approved: payload.leaveRequests?.approved ?? 0,
-                    pending: payload.leaveRequests?.pending ?? 0,
-                    rejected: payload.leaveRequests?.rejected ?? 0,
-                    hrApproved: payload.leaveRequests?.hrApproved ?? 0
-                });
+            setTravelRequests({
+                total: payload.travelRequests?.total ?? 0,
+                approved: payload.travelRequests?.approved ?? 0,
+                pending: payload.travelRequests?.pending ?? 0,
+                rejected: payload.travelRequests?.rejected ?? 0
+            });
 
-                setTravelRequests({
-                    total: payload.travelRequests?.total ?? 0,
-                    approved: payload.travelRequests?.approved ?? 0,
-                    pending: payload.travelRequests?.pending ?? 0,
-                    rejected: payload.travelRequests?.rejected ?? 0
-                });
+            setTickets({
+                total: payload.tickets?.total ?? 0,
+                booked: payload.tickets?.booked ?? 0,
+                pending: payload.tickets?.pending ?? 0,
+                totalAmount: payload.tickets?.totalAmount ?? 0
+            });
 
-                setTickets({
-                    total: payload.tickets?.total ?? 0,
-                    booked: payload.tickets?.booked ?? 0,
-                    pending: payload.tickets?.pending ?? 0,
-                    totalAmount: payload.tickets?.totalAmount ?? 0
-                });
+            setResumes({
+                total: payload.resumes?.total ?? 0,
+                selected: payload.resumes?.selected ?? 0,
+                pending: payload.resumes?.pending ?? 0,
+                rejected: payload.resumes?.rejected ?? 0,
+                joined: payload.resumes?.joined ?? 0,
+                interviewed: payload.resumes?.interviewed ?? 0
+            });
 
-                setResumes({
-                    total: payload.resumes?.total ?? 0,
-                    selected: payload.resumes?.selected ?? 0,
-                    pending: payload.resumes?.pending ?? 0,
-                    rejected: payload.resumes?.rejected ?? 0,
-                    joined: payload.resumes?.joined ?? 0,
-                    interviewed: payload.resumes?.interviewed ?? 0
-                });
+            setVisitors({
+                total: payload.visitors?.total ?? 0,
+                approved: payload.visitors?.approved ?? 0,
+                pending: payload.visitors?.pending ?? 0,
+                rejected: payload.visitors?.rejected ?? 0
+            });
 
-                setVisitors({
-                    total: payload.visitors?.total ?? 0,
-                    approved: payload.visitors?.approved ?? 0,
-                    pending: payload.visitors?.pending ?? 0,
-                    rejected: payload.visitors?.rejected ?? 0
-                });
+            setStatusDistribution(Array.isArray(payload.statusDistribution) ? payload.statusDistribution : []);
+            setMonthlyHiringData(Array.isArray(payload.monthlyHiringVsAttrition) ? payload.monthlyHiringVsAttrition : []);
+            setMonthlyRequestTrends(Array.isArray(payload.monthlyRequestTrends) ? payload.monthlyRequestTrends : []);
+            setMonthlyTicketRevenue(Array.isArray(payload.monthlyTicketRevenue) ? payload.monthlyTicketRevenue : []);
+            setDesignationData(Array.isArray(payload.designationCounts) ? payload.designationCounts : []);
 
-                setStatusDistribution(Array.isArray(payload.statusDistribution) ? payload.statusDistribution : []);
-                setMonthlyHiringData(Array.isArray(payload.monthlyHiringVsAttrition) ? payload.monthlyHiringVsAttrition : []);
-                setMonthlyRequestTrends(Array.isArray(payload.monthlyRequestTrends) ? payload.monthlyRequestTrends : []);
-                setMonthlyTicketRevenue(Array.isArray(payload.monthlyTicketRevenue) ? payload.monthlyTicketRevenue : []);
-                setDesignationData(Array.isArray(payload.designationCounts) ? payload.designationCounts : []);
-
-                setAttendance({
-                    present: payload.attendance?.present ?? 0,
-                    absent: payload.attendance?.absent ?? 0,
-                    totalActive: payload.attendance?.totalActive ?? 0,
-                    date: payload.attendance?.date || '',
-                    inCount: payload.attendance?.inCount ?? 0,
-                    outCount: payload.attendance?.outCount ?? 0,
-                    deviceConnected: payload.attendance?.deviceConnected ?? true,
-                    deviceStatus: Array.isArray(payload.attendance?.deviceStatus) ? payload.attendance.deviceStatus : []
-                });
-            } catch (loadError) {
-                if (!isMounted) return;
-                setError(loadError.message || 'Failed to load dashboard data');
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
+            setAttendance({
+                present: payload.attendance?.present ?? 0,
+                absent: payload.attendance?.absent ?? 0,
+                totalActive: payload.attendance?.totalActive ?? 0,
+                date: payload.attendance?.date || '',
+                inCount: payload.attendance?.inCount ?? 0,
+                outCount: payload.attendance?.outCount ?? 0,
+                deviceConnected: payload.attendance?.deviceConnected ?? true,
+                deviceStatus: Array.isArray(payload.attendance?.deviceStatus) ? payload.attendance.deviceStatus : []
+            });
+        } catch (loadError) {
+            setError(loadError.message || 'Failed to load dashboard data');
+        } finally {
+            if (!isAutoSync) {
+                setLoading(false);
             }
-        };
-
-        loadDashboard();
-
-        return () => {
-            isMounted = false;
-        };
+        }
     }, [token]);
+
+    useEffect(() => {
+        loadDashboard();
+    }, [loadDashboard]);
+
+    // Enable auto-sync every 10 seconds
+    useAutoSync(() => loadDashboard(true), 10000);
 
     const summaryCards = useMemo(() => [
         {

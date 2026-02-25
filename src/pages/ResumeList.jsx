@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { getResumes, updateResumes, getByIdResumes } from "../api/resumeApi";
 import { RefreshCcw, X, FileText, Image as ImageIcon, Send, Calendar, Download } from "lucide-react";
+import useAutoSync from "../hooks/useAutoSync";
 
 const isImageUrl = (url = "") =>
   /\.(png|jpg|jpeg|webp|gif)$/i.test(url.split("?")[0]);
@@ -34,9 +35,11 @@ const ResumeList = () => {
     interviewer_status: '',
   });
 
-  const fetchResumes = async () => {
+  const fetchResumes = useCallback(async (isAutoSync = false) => {
     if (!token) return;
-    setLoading(true);
+    if (!isAutoSync) {
+      setLoading(true);
+    }
     try {
       const res = await getResumes(token);
       if (res?.success) {
@@ -49,14 +52,18 @@ const ResumeList = () => {
       console.error(err);
       toast.error(err?.message || "Failed to load resumes");
     } finally {
-      setLoading(false);
+      if (!isAutoSync) {
+        setLoading(false);
+      }
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchResumes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [fetchResumes]);
+
+  // Enable auto-sync every 10 seconds
+  useAutoSync(() => fetchResumes(true), 10000);
 
   // ✅ close preview modal on ESC
   useEffect(() => {
@@ -164,7 +171,7 @@ const ResumeList = () => {
   // ✅ open edit modal
   const openEditModal = async (resume) => {
     setEditingResume(resume);
-    
+
     // Convert timestamp to datetime-local format
     const formatDateTimeLocal = (timestamp) => {
       if (!timestamp) return '';
@@ -201,7 +208,7 @@ const ResumeList = () => {
     setSubmitting(true);
     try {
       const payload = new FormData();
-      
+
       // Handle timestamp fields - convert datetime-local to ISO string
       if (editForm.interviewer_planned_at && editForm.interviewer_planned_at !== '') {
         const date = new Date(editForm.interviewer_planned_at);
@@ -222,7 +229,7 @@ const ResumeList = () => {
       }
 
       const response = await updateResumes(editingResume.id, payload, token);
-      
+
       if (response?.success) {
         toast.success('Resume updated successfully!');
         closeEditModal();
@@ -508,86 +515,86 @@ const ResumeList = () => {
               </div>
             </div>
 
-          <form
-  onSubmit={handleEditSubmit}
-  className="w-full max-w-3xl mx-auto px-4 py-5 sm:px-6 sm:py-6"
->
-  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <form
+              onSubmit={handleEditSubmit}
+              className="w-full max-w-3xl mx-auto px-4 py-5 sm:px-6 sm:py-6"
+            >
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
-    {/* Interview Status */}
-    <div>
-      <label
-        htmlFor="interviewer_status"
-        className="block text-sm font-medium text-gray-700"
-      >
-        Interview Status
-      </label>
+                {/* Interview Status */}
+                <div>
+                  <label
+                    htmlFor="interviewer_status"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Interview Status
+                  </label>
 
-      <select
-        id="interviewer_status"
-        name="interviewer_status"
-        value={editForm.interviewer_status}
-        onChange={handleEditChange}
-        className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5
+                  <select
+                    id="interviewer_status"
+                    name="interviewer_status"
+                    value={editForm.interviewer_status}
+                    onChange={handleEditChange}
+                    className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5
                    text-sm text-gray-900 shadow-sm
                    focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-      >
-        <option value="">Select Status</option>
-        <option value="Yes">Yes</option>
-        <option value="No">No</option>
-      </select>
-    </div>
+                  >
+                    <option value="">Select Status</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
 
-    {/* Interview Planned Date – ONLY when Yes */}
-    {editForm.interviewer_status === "Yes" && (
-      <div>
-        <label
-          htmlFor="interviewer_planned_at"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Interview Planned Date & Time
-        </label>
+                {/* Interview Planned Date – ONLY when Yes */}
+                {editForm.interviewer_status === "Yes" && (
+                  <div>
+                    <label
+                      htmlFor="interviewer_planned_at"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Interview Planned Date & Time
+                    </label>
 
-        <input
-          id="interviewer_planned_at"
-          name="interviewer_planned_at"
-          type="datetime-local"
-          value={editForm.interviewer_planned_at}
-          onChange={handleEditChange}
-          className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2.5
+                    <input
+                      id="interviewer_planned_at"
+                      name="interviewer_planned_at"
+                      type="datetime-local"
+                      value={editForm.interviewer_planned_at}
+                      onChange={handleEditChange}
+                      className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2.5
                      text-sm text-gray-900 shadow-sm
                      focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-        />
-      </div>
-    )}
+                    />
+                  </div>
+                )}
 
-    {/* Buttons */}
-    <div className="sm:col-span-2 mt-4">
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={closeEditModal}
-          className="w-full sm:w-auto rounded-lg border border-gray-300 bg-white px-6 py-2.5
+                {/* Buttons */}
+                <div className="sm:col-span-2 mt-4">
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={closeEditModal}
+                      className="w-full sm:w-auto rounded-lg border border-gray-300 bg-white px-6 py-2.5
                      text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
-        >
-          Cancel
-        </button>
+                    >
+                      Cancel
+                    </button>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg
                      bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white
                      shadow-md hover:bg-indigo-700 disabled:opacity-70"
-        >
-          <Send size={16} className="mr-2" />
-          {submitting ? "Updating..." : "Update Interview"}
-        </button>
-      </div>
-    </div>
+                    >
+                      <Send size={16} className="mr-2" />
+                      {submitting ? "Updating..." : "Update Interview"}
+                    </button>
+                  </div>
+                </div>
 
-  </div>
-</form>
+              </div>
+            </form>
 
 
           </div>

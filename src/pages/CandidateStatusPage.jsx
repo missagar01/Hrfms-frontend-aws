@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { X, Send, RefreshCcw } from "lucide-react";
 import { getResumes, updateResumes, getByIdResumes } from "../api/resumeApi";
 import { useAuth } from "../context/AuthContext";
+import useAutoSync from "../hooks/useAutoSync";
 
 const CandidateStatus = () => {
   const { token } = useAuth();
@@ -17,9 +18,11 @@ const CandidateStatus = () => {
     candidate_status: "",
   });
 
-  const fetchResumes = async () => {
+  const fetchResumes = useCallback(async (isAutoSync = false) => {
     if (!token) return;
-    setLoading(true);
+    if (!isAutoSync) {
+      setLoading(true);
+    }
 
     try {
       const res = await getResumes(token);
@@ -42,14 +45,18 @@ const CandidateStatus = () => {
       toast.error(err?.message || "Failed to load resumes");
       setRows([]);
     } finally {
-      setLoading(false);
+      if (!isAutoSync) {
+        setLoading(false);
+      }
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchResumes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [fetchResumes]);
+
+  // Enable auto-sync every 10 seconds
+  useAutoSync(() => fetchResumes(true), 10000);
 
   const tableRows = useMemo(() => rows, [rows]);
 
@@ -210,7 +217,7 @@ const CandidateStatus = () => {
                                 onClick={() => openModal(r.id)}
                                 className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700"
                               >
-                               Process
+                                Process
                               </button>
                             </td>
                           </tr>

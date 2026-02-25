@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useAutoSync } from '../hooks/useAutoSync';
 import { Ticket, UploadCloud, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -166,12 +167,14 @@ const TicketCreate = () => {
     }
   };
 
-  const loadRequests = async () => {
+  const loadRequests = useCallback(async (isAutoSync = false) => {
     if (!token) {
       return;
     }
 
-    setLoadingRequests(true);
+    if (!isAutoSync) {
+      setLoadingRequests(true);
+    }
     try {
       const response = await getRequests(token);
       const data = response?.data ?? [];
@@ -184,13 +187,17 @@ const TicketCreate = () => {
     } catch (error) {
       toast.error(error?.message || 'Failed to load requests');
     } finally {
-      setLoadingRequests(false);
+      if (!isAutoSync) {
+        setLoadingRequests(false);
+      }
     }
-  };
+  }, [token]);
+
+  useAutoSync(loadRequests, 10000);
 
   useEffect(() => {
     loadRequests();
-  }, [token]);
+  }, [loadRequests]);
 
   useEffect(() => {
     if (!defaultEmployeeCode) {

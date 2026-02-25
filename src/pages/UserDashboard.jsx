@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardStats } from '../api/dashboardApi';
+import useAutoSync from '../hooks/useAutoSync';
 import {
     Calendar,
     Clock,
@@ -22,13 +23,11 @@ const UserDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        fetchDashboardData();
-    }, [selectedMonth, token]);
-
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = useCallback(async (isAutoSync = false) => {
         try {
-            setLoading(true);
+            if (!isAutoSync) {
+                setLoading(true);
+            }
             const res = await getDashboardStats(token, { month: selectedMonth });
             if (res.success) {
                 setData(res.data);
@@ -38,9 +37,18 @@ const UserDashboard = () => {
         } catch (err) {
             setError(err.message || 'Failed to fetch data');
         } finally {
-            setLoading(false);
+            if (!isAutoSync) {
+                setLoading(false);
+            }
         }
-    };
+    }, [selectedMonth, token]);
+
+    useEffect(() => {
+        fetchDashboardData();
+    }, [fetchDashboardData]);
+
+    // Enable auto-sync every 10 seconds
+    useAutoSync(() => fetchDashboardData(true), 10000);
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center">

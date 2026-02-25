@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useAutoSync } from '../hooks/useAutoSync';
 import { Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createRequest } from '../api/requestApi';
@@ -81,29 +82,32 @@ const ResumeRequest = () => {
 
   // If we have a default department, we can skip fetching or just ignore the list
   // But strictly speaking, the user might want a "read only" view which implies seeing it.
-  useEffect(() => {
+  const fetchDepartments = useCallback(async (isAutoSync = false) => {
     // If we already have a forced department, we typically don't need to fetch the list
     // unless the user has no department.
     if (defaultDepartment) return;
 
-    const fetchDepartments = async () => {
-      setLoadingDepartments(true);
-      try {
-        const response = await getDepartments();
-        if (response?.success && Array.isArray(response.data)) {
-          setDepartments(response.data);
-        } else {
-          toast.error('Departments response invalid');
-        }
-      } catch (error) {
-        console.error('Failed to fetch departments:', error);
-        toast.error('Failed to load departments');
-      } finally {
-        setLoadingDepartments(false);
+    if (!isAutoSync) setLoadingDepartments(true);
+    try {
+      const response = await getDepartments();
+      if (response?.success && Array.isArray(response.data)) {
+        setDepartments(response.data);
+      } else {
+        if (!isAutoSync) toast.error('Departments response invalid');
       }
-    };
-    fetchDepartments();
+    } catch (error) {
+      console.error('Failed to fetch departments:', error);
+      if (!isAutoSync) toast.error('Failed to load departments');
+    } finally {
+      if (!isAutoSync) setLoadingDepartments(false);
+    }
   }, [defaultDepartment]);
+
+  useAutoSync(fetchDepartments, 30000);
+
+  useEffect(() => {
+    fetchDepartments();
+  }, [fetchDepartments]);
 
   const handleChange = (event) => {
     const { name, value, type } = event.target;

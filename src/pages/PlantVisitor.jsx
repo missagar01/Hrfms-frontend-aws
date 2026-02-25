@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useAutoSync } from '../hooks/useAutoSync';
 import { Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createPlaneVisitor, getPlaneVisitors } from '../api/planeVisitorApi';
@@ -71,6 +72,8 @@ const PlaneVisitor = () => {
       setLoadingVisitors(false);
     }
   }, [token]);
+
+  useAutoSync(loadVisitors, 10000);
 
   useEffect(() => {
     loadVisitors();

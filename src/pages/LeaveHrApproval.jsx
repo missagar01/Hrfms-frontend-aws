@@ -3,38 +3,45 @@ import { CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getLeaveRequestsByStatus, updateLeaveRequest } from '../api/leaveRequestApi';
 import { useAuth } from '../context/AuthContext';
+import useAutoSync from '../hooks/useAutoSync';
 
 const LeaveHrApproval = () => {
   const { token, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isAutoSync = false) => {
     if (!token) {
       setItems([]);
       return;
     }
 
-    setLoading(true);
+    if (!isAutoSync) {
+      setLoading(true);
+    }
     try {
       const response = await getLeaveRequestsByStatus('Approved', token);
       const data = Array.isArray(response?.data) ? response.data : [];
       const filtered = data.filter((item) => {
-        const hrApproval = (item.hr_approval || '').toString().trim().toLowerCase();
         const commercialStatus = (item.commercial_head_status || '').toString().trim().toLowerCase();
-        return hrApproval !== 'approved' && commercialStatus === 'approved';
+        return commercialStatus === 'approved';
       });
       setItems(filtered);
     } catch (error) {
       toast.error(error?.message || 'Failed to load leave approvals.');
     } finally {
-      setLoading(false);
+      if (!isAutoSync) {
+        setLoading(false);
+      }
     }
   }, [token]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Enable auto-sync every 10 seconds
+  useAutoSync(() => fetchData(true), 10000);
 
   const handleApprove = async (requestId) => {
     if (!token) {

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAutoSync } from '../hooks/useAutoSync';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Mail, Phone, Building, Briefcase,
@@ -45,30 +46,32 @@ const EmployeeDetailsPage = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchDetails = async () => {
-            try {
-                setLoading(true);
-                const res = await getEmployeeFullDetails(token, employeeId);
-                if (res.success) {
-                    setData(res.data);
-                } else {
-                    toast.error(res.message || 'Failed to fetch employee details');
-                    navigate('/employee-create');
-                }
-            } catch (err) {
-                console.error(err);
-                toast.error('Error loading details');
-                navigate('/employee-create');
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchDetails = useCallback(async (isAutoSync = false) => {
+        if (!employeeId || !token) return;
 
-        if (employeeId && token) {
-            fetchDetails();
+        try {
+            if (!isAutoSync) setLoading(true);
+            const res = await getEmployeeFullDetails(token, employeeId);
+            if (res.success) {
+                setData(res.data);
+            } else {
+                toast.error(res.message || 'Failed to fetch employee details');
+                navigate('/employee-create');
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Error loading details');
+            navigate('/employee-create');
+        } finally {
+            if (!isAutoSync) setLoading(false);
         }
     }, [employeeId, token, navigate]);
+
+    useAutoSync(fetchDetails, 15000);
+
+    useEffect(() => {
+        fetchDetails();
+    }, [fetchDetails]);
 
     if (loading) {
         return (

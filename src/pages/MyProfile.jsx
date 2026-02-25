@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useAutoSync } from '../hooks/useAutoSync';
 import { Building, Edit3, Mail, Phone, Save, User, X, Hash, Shield, Briefcase, CheckCircle2, Camera, FileText, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getEmployeeById, updateEmployee } from '../api/employeeApi';
@@ -45,28 +46,28 @@ const MyProfile = () => {
   const profileInputRef = useRef(null);
   const documentInputRef = useRef(null);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async (isAutoSync = false) => {
     try {
-      if (!token || !user?.id) {
-        throw new Error('Please login to view your profile');
-      }
+      if (!token || !user?.id) return;
 
+      if (!isAutoSync) setLoading(true);
       const response = await getEmployeeById(user.id, token);
       const profile = response?.data;
-      // console.log(profile)
       if (!profile) {
         throw new Error('No profile data found');
       }
 
       setProfileData(profile);
-      setFormData(profile);
+      // Only update formData if not currently editing to avoid overwriting user input
+      if (!isEditing) {
+        setFormData(profile);
+      }
 
-      // Set initial previews
-      if (profile.profile_img) {
-        // Handle both full URLs and relative paths if needed
+      // Set initial previews only if not in editing mode or if it's the first load
+      if (profile.profile_img && (!isEditing || !previewProfileImg)) {
         setPreviewProfileImg(profile.profile_img);
       }
-      if (profile.document_img) {
+      if (profile.document_img && (!isEditing || previewDocuments.length === 0)) {
         const docs = Array.isArray(profile.document_img) ? profile.document_img : [profile.document_img];
         setPreviewDocuments(docs.map(url => ({
           url,
@@ -78,15 +79,17 @@ const MyProfile = () => {
 
     } catch (error) {
       console.error('Error fetching profile data:', error);
-      toast.error(`Failed to load profile data: ${error.message}`);
+      if (!isAutoSync) toast.error(`Failed to load profile data: ${error.message}`);
     } finally {
-      setLoading(false);
+      if (!isAutoSync) setLoading(false);
     }
-  };
+  }, [user?.id, token, isEditing, previewProfileImg, previewDocuments.length]);
+
+  useAutoSync(fetchProfile, 30000, !isEditing);
 
   useEffect(() => {
     fetchProfile();
-  }, [user?.id, token]);
+  }, [fetchProfile]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

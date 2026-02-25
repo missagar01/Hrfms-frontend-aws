@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useAutoSync } from '../hooks/useAutoSync';
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -25,9 +26,9 @@ const SelectedCondidate = () => {
     joined_status: "", // Yes / No
   });
 
-  const fetchResumes = async () => {
+  const fetchResumes = useCallback(async (isAutoSync = false) => {
     if (!token) return;
-    setLoading(true);
+    if (!isAutoSync) setLoading(true);
     try {
       const res = await getSelectCondidate(token);
       if (res?.success) {
@@ -35,24 +36,25 @@ const SelectedCondidate = () => {
         setRows(list);
         setCount(res.count ?? list.length);
       } else {
-        toast.error(res?.message || "Failed to load resumes");
+        if (!isAutoSync) toast.error(res?.message || "Failed to load resumes");
         setRows([]);
         setCount(0);
       }
     } catch (err) {
       console.error(err);
-      toast.error(err?.message || "Failed to load resumes");
+      if (!isAutoSync) toast.error(err?.message || "Failed to load resumes");
       setRows([]);
       setCount(0);
     } finally {
-      setLoading(false);
+      if (!isAutoSync) setLoading(false);
     }
-  };
+  }, [token]);
+
+  useAutoSync(fetchResumes, 15000);
 
   useEffect(() => {
     fetchResumes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [fetchResumes]);
 
   // ✅ close modal on ESC
   useEffect(() => {
@@ -280,17 +282,16 @@ const SelectedCondidate = () => {
                             {/* ✅ Show joined_status value */}
                             <td className="px-4 py-3 whitespace-nowrap">
                               <span
-                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                  String(r.joined_status || "")
+                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${String(r.joined_status || "")
                                     .toLowerCase()
                                     .trim() === "yes"
                                     ? "bg-green-50 text-green-700"
                                     : String(r.joined_status || "")
-                                        .toLowerCase()
-                                        .trim() === "no"
-                                    ? "bg-red-50 text-red-700"
-                                    : "bg-gray-100 text-gray-700"
-                                }`}
+                                      .toLowerCase()
+                                      .trim() === "no"
+                                      ? "bg-red-50 text-red-700"
+                                      : "bg-gray-100 text-gray-700"
+                                  }`}
                               >
                                 {r.joined_status || "-"}
                               </span>
@@ -303,8 +304,7 @@ const SelectedCondidate = () => {
                                   onClick={() =>
                                     downloadResume(
                                       r.resume,
-                                      `${r.candidate_name || "resume"}-${
-                                        r.req_id || r.id
+                                      `${r.candidate_name || "resume"}-${r.req_id || r.id
                                       }`
                                     )
                                   }

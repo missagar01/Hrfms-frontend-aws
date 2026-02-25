@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAutoSync } from '../hooks/useAutoSync';
 import { Send, FileText, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createResume } from '../api/resumeApi';
@@ -44,23 +45,29 @@ const ResumeCreate = () => {
     }
   }, [showForm, token]);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async (isAutoSync = false) => {
     if (!token) return;
-    setLoadingRequests(true);
+    if (!isAutoSync) setLoadingRequests(true);
     try {
       const response = await getRequests(token);
       if (response?.success && Array.isArray(response.data)) {
         setRequests(response.data);
       } else {
-        toast.error('Failed to load requests');
+        if (!isAutoSync) toast.error('Failed to load requests');
       }
     } catch (error) {
       console.error('Failed to fetch requests:', error);
-      toast.error('Failed to load requests');
+      if (!isAutoSync) toast.error('Failed to load requests');
     } finally {
-      setLoadingRequests(false);
+      if (!isAutoSync) setLoadingRequests(false);
     }
-  };
+  }, [token]);
+
+  useAutoSync(fetchRequests, 15000);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;

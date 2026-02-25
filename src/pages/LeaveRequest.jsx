@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Plus, X, Filter } from 'lucide-react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { Plus, Filter, Calendar, Clock, CheckCircle2, AlertCircle, Trash2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiRequest } from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
+import useAutoSync from '../hooks/useAutoSync';
 
 const LeaveRequest = () => {
   const { token, user: authUser } = useAuth();
@@ -132,15 +133,17 @@ const LeaveRequest = () => {
     return date.getMonth() === parseInt(monthIndex);
   };
 
-  const fetchLeaveData = async () => {
-    setTableLoading(true);
+  const fetchLeaveData = useCallback(async (isAutoSync = false) => {
+    if (!token) {
+      setLeavesData([]);
+      return;
+    }
+
+    if (!isAutoSync) {
+      setTableLoading(true);
+    }
 
     try {
-      if (!token) {
-        setLeavesData([]);
-        return;
-      }
-
       const response = await apiRequest('/api/leave-requests', {
         method: 'GET',
         token,
@@ -187,13 +190,18 @@ const LeaveRequest = () => {
     } catch (error) {
       toast.error(error?.message || 'Failed to load leave data.');
     } finally {
-      setTableLoading(false);
+      if (!isAutoSync) {
+        setTableLoading(false);
+      }
     }
-  };
+  }, [token, employeeCodeValue, employeeDbIdValue, employeeNameValue]);
 
   useEffect(() => {
     fetchLeaveData();
-  }, [token, employeeCodeValue, employeeNameValue]);
+  }, [fetchLeaveData]);
+
+  // Enable auto-sync every 20 seconds for user's own requests
+  useAutoSync(() => fetchLeaveData(true), 20000);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

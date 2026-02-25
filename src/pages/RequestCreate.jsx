@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useAutoSync } from '../hooks/useAutoSync';
 import { Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createRequest } from '../api/requestApi';
@@ -51,23 +52,26 @@ const RequestCreate = () => {
     [form.person_name, defaultPersonName]
   );
 
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      setLoadingDepartments(true);
-      try {
-        const response = await getDepartments();
-        if (response?.success && Array.isArray(response.data)) {
-          setDepartments(response.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch departments:', error);
-        toast.error('Failed to load departments');
-      } finally {
-        setLoadingDepartments(false);
+  const fetchDepartments = useCallback(async (isAutoSync = false) => {
+    if (!isAutoSync) setLoadingDepartments(true);
+    try {
+      const response = await getDepartments();
+      if (response?.success && Array.isArray(response.data)) {
+        setDepartments(response.data);
       }
-    };
-    fetchDepartments();
+    } catch (error) {
+      console.error('Failed to fetch departments:', error);
+      if (!isAutoSync) toast.error('Failed to load departments');
+    } finally {
+      if (!isAutoSync) setLoadingDepartments(false);
+    }
   }, []);
+
+  useAutoSync(fetchDepartments, 30000);
+
+  useEffect(() => {
+    fetchDepartments();
+  }, [fetchDepartments]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;

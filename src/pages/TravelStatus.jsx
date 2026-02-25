@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Ticket, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getTickets } from '../api/ticketApi';
 import { useAuth } from '../context/AuthContext';
+import useAutoSync from '../hooks/useAutoSync';
 
 const TravelStatus = () => {
   const { user, token } = useAuth();
@@ -32,26 +33,33 @@ const TravelStatus = () => {
     return { total, booked, cancelled };
   }, [filteredTickets]);
 
-  useEffect(() => {
+  const loadTickets = useCallback(async (isAutoSync = false) => {
     if (!token) {
       return;
     }
 
-    const loadTickets = async () => {
+    if (!isAutoSync) {
       setLoading(true);
-      try {
-        const response = await getTickets(token);
-        const data = response?.data ?? [];
-        setTickets(Array.isArray(data) ? data : []);
-      } catch (error) {
-        toast.error(error?.message || 'Failed to load tickets');
-      } finally {
+    }
+    try {
+      const response = await getTickets(token);
+      const data = response?.data ?? [];
+      setTickets(Array.isArray(data) ? data : []);
+    } catch (error) {
+      toast.error(error?.message || 'Failed to load tickets');
+    } finally {
+      if (!isAutoSync) {
         setLoading(false);
       }
-    };
-
-    loadTickets();
+    }
   }, [token]);
+
+  useEffect(() => {
+    loadTickets();
+  }, [loadTickets]);
+
+  // Enable auto-sync every 20 seconds
+  useAutoSync(() => loadTickets(true), 20000);
 
   useEffect(() => {
     return () => {
