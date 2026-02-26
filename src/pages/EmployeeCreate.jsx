@@ -47,7 +47,7 @@ const availableRoutes = [
   { path: '/plant-visitor', label: 'Plant Visitor' },
   { path: '/plant-visitorlist', label: 'Plant Visitor List' },
   { path: '/leave-approvals', label: 'Leave Approvals' },
-  { path: '/commercial-head-approval', label: 'Commercial Head' },
+  { path: '/commercial-head-approval', label: 'Hod Approval' },
   { path: '/leave-hr-approvals', label: 'HR Approvals' },
   { path: '/resume-list', label: 'MainPower List' },
   { path: '/condidate-list', label: 'Interviwer List' },
@@ -1041,7 +1041,8 @@ const EmployeeCreate = () => {
             </div>
 
             {/* Table */}
-            <div className="overflow-hidden rounded-xl border border-gray-200">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-hidden rounded-xl border border-gray-200">
               <div className="max-h-[60vh] overflow-auto">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-left text-sm">
@@ -1141,6 +1142,101 @@ const EmployeeCreate = () => {
                   </table>
                 </div>
               </div>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              {tableLoading && (
+                <div className="py-8 text-center text-sm text-gray-500 bg-gray-50 rounded-xl border border-gray-100">
+                  Loading employees...
+                </div>
+              )}
+
+              {!tableLoading && !tableError && filteredEmployees.length === 0 && (
+                <div className="py-8 text-center text-sm text-gray-500 bg-gray-50 rounded-xl border border-gray-100">
+                  No employees found.
+                </div>
+              )}
+
+              {!tableLoading && filteredEmployees.map((employee) => {
+                const employeeId = getEmployeeId(employee);
+                return (
+                  <div
+                    key={employeeId ?? employee?.employee_id}
+                    className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm active:bg-gray-50 transition-colors"
+                    onClick={() => handleRowClick(employee)}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                            {employee?.user_name?.charAt(0) || '?'}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-900">{employee?.user_name || '-'}</h3>
+                            <p className="text-xs text-indigo-600 font-medium">{employee?.employee_id || '-'}</p>
+                          </div>
+                        </div>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${employee?.status === 'Active'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-gray-100 text-gray-500'
+                          }`}>
+                          {employee?.status || 'Active'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs border-t border-gray-50 pt-3">
+                        <div>
+                          <p className="text-gray-400 mb-0.5">Department</p>
+                          <p className="font-medium text-gray-700 truncate">{employee?.department || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 mb-0.5">Designation</p>
+                          <p className="font-medium text-gray-700 truncate">{employee?.designation || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 mb-0.5">Mobile</p>
+                          <p className="font-medium text-gray-700">{employee?.number || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 mb-0.5">Role</p>
+                          <p className="font-medium text-gray-700 capitalize">{employee?.role || '-'}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-gray-400 mb-0.5">Email</p>
+                          <p className="font-medium text-gray-700 truncate">{employee?.email_id || '-'}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-center gap-2 pt-3 border-t border-gray-50">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleRowClick(employee); }}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
+                        >
+                          <Eye size={14} />
+                          Details
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleEdit(employee); }}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                        >
+                          <Pencil size={14} />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleDelete(employee); }}
+                          className="inline-flex items-center justify-center rounded-lg bg-red-50 p-2 text-red-600 hover:bg-red-100 transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

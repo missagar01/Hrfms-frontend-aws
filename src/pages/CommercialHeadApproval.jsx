@@ -229,7 +229,7 @@ const CommercialHeadApproval = () => {
             <div className="mx-auto w-full max-w-none space-y-6 px-4 sm:px-6 lg:px-8">
                 <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xl">
                     <div>
-                        <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Commercial Head Approval</p>
+                        <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Hod Approval</p>
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Approve Leave Requests</h1>
                         <p className="mt-1 text-sm text-gray-500">
                             Reviewing pending leave requests for your department.

@@ -86,7 +86,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/employee-create', icon: UserPlus, label: 'Employee' },
     { path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' },
-    { path: '/commercial-head-approval', icon: LeaveIcon, label: 'Commercial Head' },
+    { path: '/commercial-head-approval', icon: LeaveIcon, label: 'Hod Approval' },
     { path: '/resume-list', icon: BadgeDollarSign, label: 'MainPower List' },
   ], []);
 
@@ -103,7 +103,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     { path: '/plant-visitor', icon: LeaveIcon, label: 'Plant Visitor' },
     { path: '/plant-visitorlist', icon: LeaveIcon, label: 'Plant Visitor List' },
     { path: '/leave-approvals', icon: LeaveIcon, label: 'Leave Approvals' },
-    { path: '/commercial-head-approval', icon: LeaveIcon, label: 'Commercial Head' },
+    { path: '/commercial-head-approval', icon: LeaveIcon, label: 'Hod Approval' },
     { path: '/leave-hr-approvals', icon: LeaveIcon, label: 'HR Approvals' },
   ], []);
 
