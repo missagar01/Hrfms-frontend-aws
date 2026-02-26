@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
-import { useAutoSync } from '../hooks/useAutoSync';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Pencil, Trash2, UserPlus, X, ChevronDown, Calendar, MapPin, Plane, Ticket, Clock, Briefcase, User, Mail, Phone, Building, Briefcase as DesignationIcon, CheckCircle2, XCircle, Eye, ShieldCheck, FileText, ExternalLink, Download } from 'lucide-react';
@@ -117,8 +116,6 @@ const EmployeeCreate = () => {
       }
     }
   }, [token]);
-
-  useAutoSync(fetchEmployees, 10000);
 
   useEffect(() => {
     fetchEmployees();
