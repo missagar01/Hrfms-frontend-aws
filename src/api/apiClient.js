@@ -3,6 +3,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const buildHeaders = (token, headers, isFormData) => {
   const baseHeaders = {
     ...headers,
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
