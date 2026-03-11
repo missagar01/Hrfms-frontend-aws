@@ -11,6 +11,7 @@ const LeaveRequest = () => {
   const rawUser = localStorage.getItem("user");
   const storedUser = rawUser ? JSON.parse(rawUser) : {};
   const user = useMemo(() => authUser || storedUser || {}, [authUser, storedUser]);
+  const isAdmin = useMemo(() => (user?.role || '').toLowerCase() === 'admin' || user?.Admin === 'Yes', [user]);
   const employeeCodeValue = useMemo(
     () => authUser?.employee_id || storedUser?.employee_id || storedUser?.employeeId || employeeId || '',
     [authUser, storedUser, employeeId]
@@ -151,6 +152,8 @@ const LeaveRequest = () => {
 
       const data = Array.isArray(response?.data) ? response.data : [];
       const filtered = data.filter((item) => {
+        if (isAdmin) return true;
+
         if (employeeCodeValue) {
           return String(item.employee_id ?? '') === String(employeeCodeValue);
         }
@@ -194,7 +197,7 @@ const LeaveRequest = () => {
         setTableLoading(false);
       }
     }
-  }, [token, employeeCodeValue, employeeDbIdValue, employeeNameValue]);
+  }, [token, employeeCodeValue, employeeDbIdValue, employeeNameValue, isAdmin]);
 
   useEffect(() => {
     fetchLeaveData();
@@ -340,6 +343,12 @@ const LeaveRequest = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Employee ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Employee
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           From Date
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -372,6 +381,12 @@ const LeaveRequest = () => {
                         )
                         .map((request) => (
                           <tr key={request.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {request.employeeId}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {request.employeeName}
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {request.startDate}
                             </td>
@@ -421,6 +436,9 @@ const LeaveRequest = () => {
                           <div className="flex justify-between items-start mb-3">
                             <div>
                               <div className="text-sm font-bold text-gray-900">
+                                {request.employeeName} <span className="text-xs font-normal text-gray-500">({request.employeeId})</span>
+                              </div>
+                              <div className="text-sm font-medium text-gray-700 mt-1">
                                 {request.startDate} - {request.endDate}
                               </div>
                               <div className="text-xs text-gray-500 mt-1">
